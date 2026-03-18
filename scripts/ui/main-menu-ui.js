@@ -2,6 +2,10 @@ import { IMAGE_PATH, IMAGES } from "../constants.js";
 import { UiController } from "./ui-controller.js";
 
 export class MainMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement)
 
@@ -10,6 +14,9 @@ export class MainMenu extends UiController{
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             form: this.rootElement.querySelector("#player-input-form"),
@@ -21,6 +28,9 @@ export class MainMenu extends UiController{
         };
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.form, "submit", (e) => {
             e.preventDefault();
