@@ -45,7 +45,15 @@ export const MESSAGES = {
   EMPTY_NAME: "Molimo unesite ime igrača!",
   NAME_EXISTS: (name) => `Igrač ${name} je već dodat u igru. Koristite drugo ime!`,
   NAME_TOO_LONG: (max) => `Ime ne može biti duže od ${max} karaktera!`,
-  MAX_PLAYERS_REACHED: (max) => `Dostignut maksimum od ${max} igrača!`
+  MAX_PLAYERS_REACHED: (max) => `Dostignut maksimum od ${max} igrača!`,
+  BACK_CONFIRM: `Da li sigurno želite da se vratite? Progres će biti izgubljen.`,
+  /**
+   * Message - Potrebno je dodati još ${number} uloga!
+   * @param {number} number - Number of roles needed to be added 
+   */
+  MISSING_ROLES: (number) => `Potrebno je dodati još ${number} uloga!`,
+  /** Message - Nema trenutnog koraka */
+  NO_CURRENT_STEP: `Nema trenutnog koraka!`
 };
 
 export const LYNCH_MESSAGE = {
@@ -84,9 +92,13 @@ export const ROLE_MESSAGE = {
 }
 
 export const UI_TEXT = {
+  /** Narator */
   NARRATOR: "Narator",
+  /** Zapamtite svoju ulogu i kliknite dugme da je sakrijete */
   REVEAL_INSTRUCTION: "Zapamtite svoju ulogu i kliknite dugme da je sakrijete",
+  /** Predajte uređaj igraču */
   HIDE_INSTRUCTION: "Predajte uređaj igraču",
+  /** Predajte uređaj naratoru */
   HIDE_INSTRUCTION_LAST: "Predajte uređaj naratoru"
 };
 
@@ -124,6 +136,9 @@ export const COLOR = {
   BEWITCHED: "#f1327bff"
 }
 
+/**
+ * 200 = 1 second
+ */
 export const ROLE_REVEAL_TIMER = 500; //2.5 sekundi
 export const DISCUSSION_TIMER = 300; // 5 minuta
 
