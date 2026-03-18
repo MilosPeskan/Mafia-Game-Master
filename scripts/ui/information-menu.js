@@ -2,6 +2,10 @@ import { ROLE_IDS } from "../constants.js";
 import { UiController } from "./ui-controller.js";
 
 export class InfoMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement),
         this.gameState = gameState;
@@ -10,6 +14,9 @@ export class InfoMenu extends UiController{
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             infoRole: this.rootElement.querySelector("#info-holder"),
@@ -22,6 +29,9 @@ export class InfoMenu extends UiController{
         }
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.backButton, "click", ()=>{
             this.onBackClicked?.();
