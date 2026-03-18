@@ -70,7 +70,7 @@ export class RoleMenu extends UiController{
     /**
      * Fill role element with content
      * @param {string} id - Key from ROLE dictionary
-     * @param {{ role: string, alignment: string, category: string, description: string, hasMaximum?: number }} data - Value from ROLE dictionary
+     * @param {{ role: string, alignment: string, category: string, description: string, hasMaximum?: number, toBeAdded?: number }} data - Value from ROLE dictionary
      * @returns {HTMLElement} Role card
      */
     createRoleCards(id, data){
@@ -128,7 +128,7 @@ export class RoleMenu extends UiController{
 
     /**
      * Creates controls for role card
-     * @param {string} roleId - Key from ROLE dictionary
+     * @param {string} roleId Key from ROLE dictionary
      * @returns {HTMLElement} Role card controls
      */
     createRoleControls(roleId){
@@ -153,6 +153,11 @@ export class RoleMenu extends UiController{
         return container;
     }
 
+    /**
+     * Controls logic of collapsing and expanding role details
+     * @param {string} roleID Key from ROLE dictionary
+     * @param {HTMLElement} expand Element containing details
+     */
     handleRoleDetails(roleID, expand){
         const details = this.elements.cardHolder.querySelector(
             `.role-details[data-role-id="${roleID}"]`
@@ -171,7 +176,7 @@ export class RoleMenu extends UiController{
 
     /**
      * Add role to game state and update individual and total role counter
-     * @param {string} roleId 
+     * @param {string} roleId Key from ROLE dictionary
      */
     handleAddRole(roleId){
         try{
@@ -185,7 +190,7 @@ export class RoleMenu extends UiController{
 
     /**
      * Remove role from game state and update individual and total role counter
-     * @param {string} roleId 
+     * @param {string} roleId Key from ROLE dictionary
      */
     handleRemoveRole(roleId){
         try{
@@ -199,7 +204,7 @@ export class RoleMenu extends UiController{
 
     /**
      * Update number of roles in role pool of specific role
-     * @param {string} roleId 
+     * @param {string} roleId Key from ROLE dictionary
      */
     updateRoleCounter(roleId){
         const counter = this.elements.cardHolder.querySelector(

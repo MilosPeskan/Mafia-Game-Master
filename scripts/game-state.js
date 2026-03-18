@@ -6,33 +6,55 @@ import { ROLE_BEHAVIOURS } from './utils/role-behaviours.js';
 
 export class GameState{
     constructor() {
-        this.players = []; //lista PlayerClass objekata
-        this.pendingRoles = [];  //int index uloge
+        /** PlayerClass object list */
+        this.players = []; 
+        /** Number value of role index */
+        this.pendingRoles = [];
+        /** Number value of total lynch votes */
         this.lynchVotes = 0;
+        /** Number value of current player index in queue */
         this.currentPlayerIndex = 0;
+        /** Icon manager object */
         this.iconManager = new IconManager;
+        /** PlayerObject execution target */
         this.executionTarget = null;
-        this.executionerPlayer = null;
 
-        this.nightQueue = []; //redosled roleId, player za budjenje 
+        /** Order for waking up - roleId[number] - Array[PlayerObject] */
+        this.nightQueue = [];
+        /** Number of current possition in night queue */
         this.nightIndex = 0;
 
+        /** Array of night actions */
         this.nightActions = {
-            kills: new Map(), // attacker -> target
-            bodyguard: new Map(), // bodyguard -> target
+            /** Map attacker[PlayerObject] -> target[PlayerObject] */
+            kills: new Map(),
+            /** Map bodyguard[PlayerObject] -> target[PlayerObject] */
+            bodyguard: new Map(),
+            /** Array of PlayerObject */
             silenced: [],
-            exposed: new Map(), //attacker -> target
+            /** Map attacker[PlayerObject] -> target[PlayerObject] */
+            exposed: new Map(),
+            /** Map target[PlayerObject] -> parasite[PlayerObject] */
             parasited: new Map()
         };
 
+        /** Array of strings - player names */
         this.deaths = [];
+        /** Array of strings - player names */
         this.survived = [];
+        /** Number of total players visited by visitor that are alive */
         this.visitorVisited = 0;
+        /** Is visitor event active */
         this.visitorEvent = false;
+        /** Number of nights passed durring visitor event */
         this.visitorEventNights = 0;
     }
 
-    //funkcija za dodavanje igraca
+    /**
+     * Validate sanitized inputed name and create PlayerObject and add it to players list
+     * @param {string} name Player name
+     * @returns {string} Sanitized player name string
+     */
     addPlayer(name){
         const sanitizedName = this.sanitizeName(name);
 
@@ -56,16 +78,20 @@ export class GameState{
         return sanitizedName;
     }
 
+    /**
+     * Sanitize string by removing spetial caracters, keep all letters (icluding serbian latin), nubers and spaces
+     * Make first letter upper case, rest lover case
+     * @param {string} name Player name 
+     * @returns {string} Sanitized player name string
+     */
     sanitizeName(name) {
         if (!name) return '';
         
-        // Ukloni specijalne karaktere, zadrži slova (uključujući naša slova), brojeve i razmake
         let sanitized = name
             .trim()
             .replace(/[^a-zA-ZčćžšđČĆŽŠĐ0-9\s]/g, '')
-            .replace(/\s+/g, ' '); // Zameni više razmaka sa jednim
+            .replace(/\s+/g, ' '); // Replace multiple spaces with one space
         
-        // Prvo slovo veliko, ostala mala
         if (sanitized.length > 0) {
             sanitized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1).toLowerCase();
         }
@@ -74,7 +100,10 @@ export class GameState{
     }
 
 
-    // uklanja ime igraca iz liste
+    /**
+     * Remove player object from player array whose name matches parameter
+     * @param {string} name Player name string
+     */
     removePlayer(name) {
         const index = this.players.findIndex(p => p.name === name);
         if (index > -1) {
@@ -85,25 +114,41 @@ export class GameState{
         }
     }
 
-    // vraca true ako je dostignut maksimalni broj igraca
+    /** Check if max number of players added */
     hasMaxNumberOfPlayers(){
         return this.players.length >= CONFIG.MAX_PLAYERS;
     }
 
+    /**
+     * Get every player name
+     * @returns {String[]} Array of player names as strings
+     */
     getPlayers(){
         return this.players.map(p => p.name);
     }
 
+    /**
+     * @returns {number} Total number of players added to players array
+     */
     getNumberOfPlayers(){
         return this.players.length;
     }
 
+    /**
+     * Add role id to pendingRoles array if number of pending roles is less than number of players and that role hasn`t reached max number
+     * @param {string} roleId Key from ROLES dictionary
+     */
     addRole(roleId){
         if(this.pendingRoles.length !== this.players.length && this.maxSpecificRole(roleId)){
             this.pendingRoles.push(String(roleId));
         }
     }
 
+    /**
+     * Check if role has a set maximum of repetitions and check if that maximum has been reached
+     * @param {string} roleId Key from ROLES dictionary
+     * @returns {boolean} Return false if role has reached maximum 
+     */
     maxSpecificRole(roleId){
         if(ROLES[roleId].hasMaximum){
             return this.getSpecificRoleCount(roleId) < ROLES[roleId].hasMaximum;
@@ -111,6 +156,10 @@ export class GameState{
         else return true
     }
 
+    /**
+     * Remove first instance of role id from pendingRoles array
+     * @param {string} roleId Key from ROLES dictionary
+     */
     removeRole(roleId){
         const position = this.pendingRoles.indexOf(String(roleId));
 
@@ -119,24 +168,45 @@ export class GameState{
         }
     }
 
+    /**
+     * Get number of specific role in pending roles
+     * @param {string} roleID Key from ROLES dictionary
+     * @returns {number} Number of specific role instances
+     */
     getSpecificRoleCount(roleID){
         return this.pendingRoles.filter((id) => (id === String(roleID))).length;
     }
 
+    /**
+     * Get number of roles in pendingRoles
+     * @returns {number} Number of roles
+     */
     getNumberOfRoles(){
         return this.pendingRoles.length;
     }
 
+    /**
+     * Get difference between numbers of added roles and players
+     * @returns {number} Number of roles to be added
+     */
     getNumberOfMissingRoles(){
         return this.getNumberOfRoles() - this.getNumberOfPlayers();
     }
 
+    /**
+     * Get name of player current in line to learn role 
+     * @returns {string} Player name string
+     */
     getCurrentPlayer(){
         return this.players[this.currentPlayerIndex]?.name;
     }
 
+    /**
+     * Check if any players left to learn role, if true progress currentPlayerIndex
+     * @returns {boolean} False if no more players left
+     */
     nextPlayer(){
-        if(this.currentPlayerIndex < this.players.length){
+        if(this.hasMorePlayers()){
             this.currentPlayerIndex++;
             return true;
         }
@@ -145,35 +215,59 @@ export class GameState{
         }
     }
 
+    /** Check if any more players left to learn role */
     hasMorePlayers(){
         return this.currentPlayerIndex < this.players.length;
     }
 
+    /**
+     * Get current players role id
+     * @returns {string} String key from ROLES dictionary assigned to player
+     */
     getCurrentRole(){
         return this.players[this.currentPlayerIndex].roleId;
     }
 
+    /**
+     * Check if current players role is executioner
+     * @returns {boolean} true if is executioner
+     */
     isExecutioner(){
         return this.getCurrentRole() == ROLE_IDS.DZELAT;
     }
 
+    /**
+     * @returns {string} String name of execution target
+     */
     getExecutionTarget(){
         return this.executionTarget?.name;
     }
 
+    /** Filters players to remove executioner and jester and assigns a random player object from filtered players to executionTarget */
     generateExecutionTarget(){
+        //executioners and jesters cant be execution targets
         const filterExecutioner = this.players.filter(p => p.roleId != ROLE_IDS.DZELAT && p.roleId != ROLE_IDS.LUDAK)
         this.executionTarget = filterExecutioner[Math.floor((Math.random()*filterExecutioner.length))];
     }
 
+    /**
+     * Get player with executioner role
+     * @returns {PlayerClass} Player object of executioner player
+     */
     getExecutioner(){
         return this.players.find(p => p.roleId === ROLE_IDS.DZELAT);
     }
 
+    /** Reset currentPlayerIndex */
     resetPlayerIndex(){
         this.currentPlayerIndex = 0;
     }
 
+    /**
+     * Shuffle player and pending roles
+     * Assign roles and icons to players
+     * Call buildNightQueue
+     */
     initializeGame(){
         this.shuffleArray(this.players);
         this.shuffleArray(this.pendingRoles);
@@ -182,6 +276,7 @@ export class GameState{
 
         this.players.forEach((player, index) =>{
             player.roleId = this.pendingRoles[index];
+            console.log(typeof icons[index])
             player.iconPath = icons[index];
         });
 
@@ -192,7 +287,15 @@ export class GameState{
         this.pendingRoles = [];
     }
 
+    /**
+     * Builds the night action queue grouped by role execution order.
+     * Players are grouped by roleId and then ordered according to ORDER_OF_ROLES.
+     * Mafia roles are merged into a shared wake-up group.
+     * @param {PlayerClass[]} players Array of player objects 
+     * @returns {{ roleId: number, players: PlayerClass[] }[]} Night queue steps
+     */
     buildNightQueue(players) {
+        /**  Group players by their role id - int roleId -> Array[PlayerClass] */
         const roleGroup = new Map();
 
         players.forEach((player) => {
@@ -207,6 +310,7 @@ export class GameState{
 
         this.addAllMafiaToMafiaWakeUp(roleGroup);
 
+        /** Array to  */
         const queue = [];
 
         ORDER_OF_ROLES.forEach(roleId => {
@@ -225,6 +329,10 @@ export class GameState{
         return queue;
     }
 
+    /**
+     * Ensures all mafia-aligned roles are included in the mafia wake-up phase.
+     * @param {Map<number, PlayerClass[]>} roleGroup Map of roleId to players
+     */
     addAllMafiaToMafiaWakeUp(roleGroup){
         const allUniqueMafia = this.getAllUniqueMafia();
         if(!roleGroup.has(ROLE_IDS.MAFIJAS) && allUniqueMafia.length > 0){
@@ -235,42 +343,61 @@ export class GameState{
         })
     }
 
+    /**
+     * Shuffles array in-place using Fisher-Yates algorithm.
+     * @template T
+     * @param {T[]} array - Array to shuffle
+     * @returns {T[]} Shuffled array
+     */
     shuffleArray(array) {
         let currentIndex = array.length, randomIndex;
 
-        // While there remain elements to shuffle.
         while (currentIndex !== 0) {
 
-            // Pick a remaining element.
             randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex--;
 
-            // And swap it with the current element.
             [array[currentIndex], array[randomIndex]] = [
             array[randomIndex], array[currentIndex]];
         }
         return array;
     }
 
+    /**
+     * @returns {PlayerClass[]} Array of all alive player objects
+     */
     getAlivePlayers() {
         return this.players.filter(p => p.isAlive);
     }
 
     /**
-    * Dobavi sve mrtve igrače
-    */
+     * @returns {PlayerClass[]} Array of all dead player objects
+     */
     getDeadPlayers() {
         return this.players.filter(p => !p.isAlive);
     }
 
+    /**
+     * @returns {number} Number of alive players
+     */
     getNumberOfAlivePlayers(){
         return this.getAlivePlayers().length;
     }
 
+    /**
+     * @returns {number} Number of lynch votes
+     */
     getLynchVotes(){
         return this.lynchVotes;
     }
 
+    /**
+     * Adds a lynch vote to a player if the total number of votes
+     * has not exceeded the number of alive players.
+     * 
+     * Increments both the player's vote count and global lynch vote counter.
+     * @param {PlayerClass} player Target player object recieving the vote 
+     */
     addLynchVote(player){
         const maxVotes = this.getNumberOfAlivePlayers();
 
@@ -280,6 +407,10 @@ export class GameState{
         }
     }
 
+    /**
+     * Subtract a vote from player if target player has been woted for
+     * @param {PlayerClass} player Target player object from who to subtract the vote 
+     */
     removeLynchVote(player){
         if(player.votes > 0){
             player.removeLynchVote();
@@ -287,6 +418,7 @@ export class GameState{
         }
     }
 
+    /** Reset global lynch vote counter and every alive players individual vote counts */
     resetLynch(){
         this.lynchVotes = 0;
         for(const player of this.getAlivePlayers()){
@@ -294,6 +426,12 @@ export class GameState{
         }
     }
 
+    /**
+     * Resolve lynch voting.
+     * 
+     * Handle ties, protected players and lynch related win cons
+     * @returns {string | null} Result message describing the outcome
+     */
     handleLynch(){
         const alivePlayers = this.getAlivePlayers();
         const maxVote = Math.max(...alivePlayers.map(p => p.getLynchVotes()))
@@ -318,7 +456,8 @@ export class GameState{
     }
 
     /**
-     * Dobavi igrače po alignmentu
+     * @param {string} alignment - Alignment of a player 
+     * @returns {PlayerClass[]} Array of all alive players with specific alignment
      */
     getPlayersByAlignment(alignment) {
         return this.players.filter(p => 
@@ -326,35 +465,64 @@ export class GameState{
         );
     }
 
+    /**
+     * Get a random role excluding the role of the targeted player
+     * @param {PlayerClass} target - Player targeted by action 
+     * @returns {string} Random string key from ROLES dictionary  
+     */
     getRandomPlayerRole(target){
         const playersWithoutTarget = this.players.filter(p => p !== target);
         return ROLES[playersWithoutTarget[Math.floor(Math.random() * playersWithoutTarget.length)].roleId];
     }
 
+    /**
+     * Get a random town role excluding the role of the targeted player
+     * @returns {string} Random string key from ROLES dictionary  
+     */
     getRandomTownRole(){
         const townPlayers = this.players.filter(p => p.getRoleAlignment() == ALIGNMENT.TOWN);
         return ROLES[townPlayers[Math.floor(Math.random() * townPlayers.length)].roleId];
     }
 
+    /**
+     * Get a random mafia role excluding the role of the targeted player
+     * @returns {string} Random string key from ROLES dictionary  
+     */
     getRandomMafiaRole(){
         const mafiaPlayers = this.players.filter(p => p.getRoleAlignment() == ALIGNMENT.MAFIA && p.roleId != ROLE_IDS.KUM);
         return ROLES[mafiaPlayers[Math.floor(Math.random() * mafiaPlayers.length)].roleId];
     }
 
+    /**
+     * Returns all unique mafia roles that are alive and active in the game
+     * @returns {PlayerClass[]} Array of player objects
+     */
     getAllUniqueMafia(){
         return this.players.filter(p => 
         p.isAlive && p.isMafiaAligned() && p.roleId != ROLE_IDS.MAFIJAS
         );
     }
 
+    /**
+     * @param {PlayerClass[]} players Array of player objects in current night step 
+     * @returns {boolean} True if every player dead
+     */
     isEveryPlayerWithRoleDead(players){
         return players.every(player => !player.checkIfPlayerAlive());
     }
 
+    /**
+     * @param {PlayerClass[]} players Array of player objects in current night step 
+     * @returns {boolean} True if every player blocked
+     */
     isEveryPlayerWithRoleBlocked(players){
         return players.every(player => player.checkIfPlayerBlocked());
     }
 
+    /**
+     * @param {PlayerClass[]} players Array of player objects in current night step 
+     * @returns {boolean} True if amnesiac has taken another role
+     */
     hasRemembered(players){
         for(const player of players){
             if(player.remembered){
@@ -363,6 +531,10 @@ export class GameState{
         }
     }
 
+    /**
+     * @param {PlayerClass[]} players Array of player objects in current night step 
+     * @returns {boolean} True if parasite has taken another role
+     */
     hasParasitised(players){
         for(const player of players){
             if(player.wasParasite){
@@ -371,27 +543,33 @@ export class GameState{
         }
     }
 
+    /**
+     * Check if every player of current night step has acted
+     * 
+     * Available only if role of current night step is not AllForOne
+     * @param {PlayerClass[]} players Array of player objects in current night step 
+     * @returns {boolean} True if every player acted
+     */
     isEveryPlayerActed(players){
         return players.every(player => player.acted === true);
     }
 
-    getPlayersByRoleId(roleId){
-        return this.players.filter(p => Number(p.roleId) === roleId);
-    }
-
+    /**
+     * @returns { roleId: number, players: PlayerClass[] } Current night step
+     */
     getCurrentNightStep(){
         return this.nightQueue[this.nightIndex] || null;
     }
 
+    /** Increase nightIndex */
     advanceNight(){
         this.nightIndex++;
     }
 
-    //potencijalno brisi
-    isNightFinished(){
-        this.nightIndex >= this.nightQueue.length;
-    }
-
+    /**
+     * Execute all night actions and return summary
+     * @returns {string} Night result message
+     */
     calculateNight(){
         this.deaths = [];
         this.survived = [];
@@ -399,6 +577,13 @@ export class GameState{
         return this.showNightResults();
     }
 
+    /**
+     * Calculate number of alive players visited by visitor.
+     * 
+     * Start visitor event if number of visited players equals to treshold and return visitor event 
+     * message. 
+     * @returns {string} Visitor event message | ""
+     */
     calculateVisitorVisited(){
         this.visitorVisited = 0;
         for(const player of this.players) {
@@ -412,6 +597,10 @@ export class GameState{
         } else return "";
     }
 
+    /**
+     * Logic for displaying night summary messages after night ended. 
+     * @returns {string} Night summary message
+     */
     showNightResults(){
         let message = ""
         message += this.calculateVisitorVisited();
@@ -440,6 +629,10 @@ export class GameState{
         else return "Noć je bila mirna."
     }
 
+    /**
+     * Handle visitor event logic and return a vistor event message
+     * @returns {string} Visitor event message
+     */
     visitorEventMessage(){
         if(this.checkIfVisitorAlive() && CONFIG.VISITOR_EVENT_NIGHTS > this.visitorEventNights){
             return `<p> Ostalo je još ${CONFIG.VISITOR_EVENT_NIGHTS - this.visitorEventNights} noći! </p>`
@@ -451,18 +644,29 @@ export class GameState{
         return "";
     }
 
+    /**
+     * Check if visitor is dead and return visitor dead message
+     * @returns {string} Visitor dead message | ""
+     */
     checkIfVisitorKilled(){
-        if(!this.checkIfVisitorAlive) {
+        if(!this.checkIfVisitorAlive()) {
             this.visitorEvent = false;
             return ROLE_MESSAGE.VISITOR_STOPPED;
         }
         return "";
     }
 
+    /**
+     * @returns {boolean} true if visitor is alive
+     */
     checkIfVisitorAlive(){
         return this.players.filter(p => p.roleId == ROLE_IDS.POSETILAC)[0].isAlive;
     }
 
+    /**
+     * Generates a message of who was found to be attacking who by the reporter
+     * @returns {string} Message of reporters findings
+     */
     generateReporterExposed(){
         let message = "";
         for(const [attacker, target] of this.nightActions.exposed){
@@ -471,6 +675,14 @@ export class GameState{
         return message
     }
 
+    /**
+     * Moves a player into another role's night queue step.
+     *
+     * Used for effects like parasite role switching.
+     *
+     * @param {PlayerClass} player - Player being moved
+     * @param {PlayerClass} target - Target whose role is copied
+     */
     switchRoleInQueue(player, target){
         console.log(this.nightQueue)
         const targetRoleId = Number(target.roleId);
@@ -486,12 +698,16 @@ export class GameState{
         }
     }
 
+    /**
+     * Begins clearing of night effects residue
+     */
     resetNight(){
         this.nightIndex = 0;
         this.cleanupNightStatuses();
         this.clearNightActions();
     }
 
+    /** Resets nightActions */
     clearNightActions() {
         this.nightActions = {
             kills: new Map(), 
@@ -502,25 +718,31 @@ export class GameState{
         };
     }
 
+    /**
+     * Gets role behaviour with selected id
+     * @param {string} roleId Key from ROLES dictionary
+     * @returns {ROLE_BEHAVIOURS | null} Selected role behaviour
+     */
     getRoleBehaviour(roleId) {
         return ROLE_BEHAVIOURS[Number(roleId)];
     }
 
-    setNightButtonAction(id){
-        return ROLE_BEHAVIOURS[id];
-    }
-
+    /**
+     * Applies all kill actions, resolving protections, bodyguards,
+     * parasite effects, and recording exposures.
+     */
     applyKills() {
         for (const [attacker, target] of this.nightActions.kills){
             const targets = Array.isArray(target) ? target : [target];
             for (const t of targets) {
                 if (t && t.isAlive) {
-                    // Proveri da li je zaštićen
+                    // Pyroman
                     if(t.hasStatus(STATUS.IGNITED)){
                         t.kill();
                         this.deaths.push(t.name);
                     } else if (!t.hasStatus(STATUS.PROTECTED)) {
                         const bodyguard = this.checkIfBodyguarded(t)
+                        // Bodyguarded
                         if(bodyguard){
                             if(this.checkIfRecorded(bodyguard)){
                                 this.nightActions.exposed.set(attacker.name, target.name);
@@ -530,6 +752,7 @@ export class GameState{
                             this.deaths.push(bodyguard.name);
                             return;
                         }
+                        // Reporter
                         if(this.checkIfRecorded(t)){
                             this.nightActions.exposed.set(attacker.name, target.name);
                         }
@@ -544,6 +767,10 @@ export class GameState{
         }
     }
 
+    /**
+     * Parasite logic for adopting new role
+     * @param {PlayerClass} player Check target for parasitation
+     */
     checkIfParasitised(player){
         if(this.nightActions.parasited.has(player)){
             const parasite = this.nightActions.parasited.get(player);
@@ -553,6 +780,11 @@ export class GameState{
         }
     }
 
+    /**
+     * Checks if targeted player has been bodyguarded, if true returns bodyguard player
+     * @param {PlayerClass} player Check target for bodyguard
+     * @returns {PlayerClass} Bodyguard that guarded targeted player
+     */
     checkIfBodyguarded(player){
         for(const [key, value] of this.nightActions.bodyguard){
             if (value === player){
@@ -561,10 +793,16 @@ export class GameState{
         }
     }
 
+    /**
+     * Checks if killed player was recorded by repotrter
+     * @param {PlayerClass} target Player that was killed 
+     * @returns {boolean} True if target has status RECORDED
+     */
     checkIfRecorded(target){
         return target.hasStatus(STATUS.RECORDED);
     }
 
+    /** Resets all temporary night statuses */
     cleanupNightStatuses() {
         this.players.forEach(player => {
             player.visitedBy = [];
@@ -589,7 +827,8 @@ export class GameState{
 
 
     /**
-     * Proveri ko je pobedio
+     * Checks if any win condition has been met
+     * @returns {string | null} Win message or null if game continues
      */
     checkWinCondition() {       
         if (this.visitorEvent) {
@@ -598,9 +837,13 @@ export class GameState{
         if (this.townWinCon()) return this.townWin();
         if (this.mafiaWinCon()) return this.mafiaWin();
         
-        return null; // Igra se nastavlja
+        return null;
     }
 
+    /**
+     * Checks if mafia win condition has been met
+     * @returns {boolean} true if wincon met
+     */
     mafiaWinCon(){
         const alive = this.getAlivePlayers();
         const town = alive.filter(p => p.isAlignment('Selo'));
@@ -608,12 +851,25 @@ export class GameState{
         return mafia.length >= town.length || mafia.length === town.length && alive.length === 2;
     }
 
+    /**
+     * Checks if town win condition has been met
+     * @returns {boolean} true if wincon met
+     */
     townWinCon(){
         const alive = this.getAlivePlayers();
         const mafia = alive.filter(p => p.isAlignment('Mafija'));
         return mafia.length === 0;
     }
 
+    /**
+     * Check if any lynch specific or general win condition has been met after lynching and
+     * prevents town or mafia win conditions during visitor event
+     * 
+     * Handles visitor event after visitor lynched
+     * @param {PlayerClass} player Voted out player 
+     * @param {number} votes Number of votes
+     * @returns {string} Lynch message
+     */
     checkLynchWinCondition(player, votes){
         if(player.roleId == ROLE_IDS.LUDAK) return this.jesterWin(player, votes);
         if(player === this.executionTarget) return this.executionerWin(player, votes);
@@ -644,7 +900,6 @@ export class GameState{
     }
 
     executionerWin(player, votes){
-
         return LYNCH_MESSAGE.EXECUTIONER(votes, player.name, )
     }
 }

@@ -91,9 +91,11 @@ export class NightMenu extends UiController {
         if (roleId == ROLE_IDS.MAFIJAS){
             roleName = "Mafija";
         }
+        // At amnesiac step, allways display amnesiac, regardless if he took another role
         else if( roleId == ROLE_IDS.AMNEZICAR){
             roleName = "Amnezičar";
         }
+        // At parasite step, allways display parasite, regardless if he took another role
         else if( roleId == ROLE_IDS.PARAZIT){
             roleName = "Parazit"
         }
@@ -129,8 +131,8 @@ export class NightMenu extends UiController {
 
     /**
      * 
-     * @param {*} roleId 
-     * @param {*} players 
+     * @param {number} roleId Key from ROLE dictionary
+     * @param {import("../player-manager.js").PlayerClass[]} players Array of player objects in current night step
      * @returns 
      */
     updateMenu(roleId, players){
