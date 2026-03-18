@@ -3,6 +3,10 @@ import { UiController } from "./ui-controller.js";
 import { ROLE_BEHAVIOURS, getValidTargets } from "../utils/role-behaviours.js";
 
 export class ActionMenu extends UiController {
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState) {
         super(rootElement);
         this.gameState = gameState;
@@ -15,6 +19,9 @@ export class ActionMenu extends UiController {
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements() {
         this.elements = {
             roleTitle: this.rootElement.querySelector("#role-title"),
@@ -31,6 +38,9 @@ export class ActionMenu extends UiController {
         };
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners() {
         this.addEventListener(this.elements.targetHolder, "click", (e) => {
             if (e.target.classList.contains("target-card") || e.target.closest(".target-card")) {
