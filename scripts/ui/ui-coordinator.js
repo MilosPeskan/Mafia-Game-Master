@@ -6,14 +6,21 @@ import { MainMenu } from "./main-menu-ui.js";
 import { NightMenu } from "./night-menu-ui.js";
 import { RoleMenu } from "./role-menu-ui.js";
 import { RoleRevealMenu } from "./role-reveal-ui.js";
+import { UiController } from "./ui-controller.js";
 
 export class UiCoordinator{
+    /**
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(gameState){
         this.gameState = gameState;
         this.initializeControlers();
         this.setupCallbacks();
     }
 
+    /**
+     * Create all menu ui objects, hide all exept mainMenu
+     */
     initializeControlers(){
         this.mainMenu = new MainMenu(
             document.getElementById("mainMenu"),
@@ -59,16 +66,11 @@ export class UiCoordinator{
         this.mainMenu.show("flex");
     }
 
-    /*
-    vrednosti menija: 
-    main - flex
-    role - grid
-    reveal - flex
-    manager - grid
-    info - grid
-    night - block
-
-    default - flex
+   /**
+    * Initializes and binds all UI callbacks between menus.
+    * 
+    * Connects user interactions (clicks, actions) with application logic
+    * and handles transitions between different menu screens.
     */
     setupCallbacks(){
         this.mainMenu.onNextClick = () => {
@@ -116,29 +118,21 @@ export class UiCoordinator{
         }
 
         this.actionMenu.onActionComplete = () => {
-            // Akcija izvršena, vrati se na night menu
             this.transitionTo(this.actionMenu, this.nightMenu, "block");
-            
-            // Automatski pređi na sledeći korak
             this.nightMenu.advanceToNextStep();
         };
 
         this.actionMenu.onActionSkipped = () => {
-            // Akcija preskočena, vrati se na night menu
             this.transitionTo(this.actionMenu, this.nightMenu, "block");
-            
-            // Automatski pređi na sledeći korak
             this.nightMenu.advanceToNextStep();
         };
 
         this.nightMenu.onNightComplete = (message) => {
-            // Noć je završena, vrati se na game menu
             this.transitionTo(this.nightMenu, this.gameMenu, "grid");
             this.gameMenu.nightPopup(message);
         };
 
         this.nightMenu.onActionRequested = (roleId, players) => {
-            // Otvori action menu za tu ulogu i igrača
             this.transitionTo(this.nightMenu, this.actionMenu, "grid");
             this.actionMenu.setupAction(roleId, players);
         };
@@ -153,11 +147,21 @@ export class UiCoordinator{
         }
     }
 
+    /**
+     * Handle transitions between menus
+     * @param {UiController} fromController - Current menu controller
+     * @param {UiController} toController - Target menu controller
+     * @param {string} type - Display type
+     */
     transitionTo(fromController, toController, type){
         fromController.hide();
         toController.show(type);
     }
 
+    /**
+     * Transition to main menu and reset game
+     * @param {UiController} fromMenu - Current menu controller
+     */
     backToMainMenu(fromMenu){
         // Reset game state
         this.gameState.players = [];
@@ -168,6 +172,9 @@ export class UiCoordinator{
         this.transitionTo(fromMenu, this.mainMenu);
     }
 
+    /**
+     * Hide all menus
+     */
     hideAll(){
         this.mainMenu.hide();
         this.roleMenu.hide();
@@ -178,6 +185,9 @@ export class UiCoordinator{
         this.lynchMenu.hide();
     }
 
+    /**
+     * Cleanup all menus
+     */
     cleanup(){
         this.mainMenu.cleanup();
         this.roleMenu.cleanup();
