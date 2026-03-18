@@ -374,6 +374,7 @@ export class GameState{
         this.nightIndex++;
     }
 
+    //potencijalno brisi
     isNightFinished(){
         this.nightIndex >= this.nightQueue.length;
     }
