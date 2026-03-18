@@ -175,7 +175,7 @@ export const ALIGNMENT = {
 export const ICON_PATH = "resourses/silluetes/";
 export const DEAD_ICON_PATH = "resourses/silluetes/dead.png";
 
-export const ORDER_OF_ROLES = [20, 11, 18, 7, 30, 21, 23, 17, 1, 6, 19, 26, 28, 2, 13, 4, 15, 8, 12, 22, 29, 32, 16];
+export const ORDER_OF_ROLES = [32, 20, 11, 18, 7, 30, 21, 23, 17, 1, 6, 19, 26, 28, 2, 13, 4, 15, 8, 12, 22, 29, 16];
 
 export const STATUS = {
   INVESTIGATED:"istražen",
@@ -199,5 +199,4 @@ export const STATUS = {
   MARKED_BY_VISITOR:"označen od posetioca",
   LOCKED_UP:"zatvoren",
   PARASITE_TARGET:"parazitovan"
-
 }

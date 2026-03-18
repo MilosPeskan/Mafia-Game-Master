@@ -37,6 +37,9 @@ export class RoleMenu extends UiController{
             } else if(e.target.classList.contains("remove-role")){
                 const roleID = e.target.dataset.roleId;
                 this.handleRemoveRole(roleID);
+            } else if(e.target.classList.contains("role-expand")){
+                const roleID = e.target.dataset.roleId;
+                this.handleRoleDetails(roleID, e.target);
             }
         })
 
@@ -79,6 +82,15 @@ export class RoleMenu extends UiController{
         const roleName = document.createElement("h3");
         roleName.textContent = data.role;
         roleName.className = "role-name";
+
+        const details = document.createElement("div");
+        details.className = "role-details";
+        details.dataset.roleId = id;
+        details.dataset.shown = true;
+
+        if(window.innerWidth > 768){
+            details.classList.add("details-show");
+        } else details.classList.add("details-hide");
     
         const roleAlignment = document.createElement("p");
         roleAlignment.textContent = `Strana: ${data.alignment}`;
@@ -91,10 +103,20 @@ export class RoleMenu extends UiController{
         const roleDescription = document.createElement("p");
         roleDescription.textContent = data.description;
         roleDescription.className = "role-description";
+
+        const expand = document.createElement("div");
+        expand.className = "role-expand";
+        expand.textContent = "proširi";
+        expand.dataset.roleId = id;
+
+        details.append(roleAlignment, roleCategory, roleDescription)
         
-        const controls = this.createRoleControls(id);
-    
-        roleCard.append(roleName, roleAlignment, roleCategory, roleDescription, controls)
+        let controls
+        if(!data.toBeAdded){
+            controls = this.createRoleControls(id);
+        }else controls = "Bice dodato"
+
+        roleCard.append(roleName, details, expand, controls)
         if(data.hasMaximum){
             const note = document.createElement("p");
             note.textContent = `Max: ${data.hasMaximum}`
@@ -129,6 +151,22 @@ export class RoleMenu extends UiController{
         container.append(removeRoleButton, counter, addRoleButton);
 
         return container;
+    }
+
+    handleRoleDetails(roleID, expand){
+        const details = this.elements.cardHolder.querySelector(
+            `.role-details[data-role-id="${roleID}"]`
+        );
+        console.log(details.classList)
+        if(details.classList.contains("details-show")){
+            details.classList.remove("details-show");
+            details.classList.add("details-hide");
+            expand.textContent = "proširi";
+        } else {
+            details.classList.remove("details-hide");
+            details.classList.add("details-show");
+            expand.textContent = "sakrij";
+        }
     }
 
     /**

@@ -1,3 +1,4 @@
+import { lockToLandscape } from "../utils/set-fullscreen.js";
 import { ActionMenu } from "./action-menu.js";
 import { GameMenu } from "./game-menu-ui.js";
 import { InfoMenu } from "./information-menu.js";
@@ -89,6 +90,7 @@ export class UiCoordinator{
         this.revealMenu.onRevealComplete = () => {
             this.transitionTo(this.revealMenu, this.gameMenu, "grid");
             this.gameMenu.displayPlayers();
+            lockToLandscape();
         };
 
         this.revealMenu.onBackClick = () => {

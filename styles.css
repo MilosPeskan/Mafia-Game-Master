@@ -61,7 +61,7 @@
 
 body {
     max-width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     margin: 0;
     overflow-x: hidden;
     font-family: "Libre Baskerville";
@@ -115,13 +115,6 @@ button {
     overflow: hidden;
 }
 
-#subtitle {
-    display: flex;
-    justify-content: center;
-    color: wheat;
-    width: 100%;
-}
-
 #blood{
     position: fixed;
     width: auto;
@@ -151,7 +144,7 @@ button {
     z-index: 100;
     font-size: 12vh;
     font-family: "Title";
-    color: wheat;
+    color: var(--input-focus-border);
 }
 
 #settings {
@@ -225,9 +218,8 @@ button {
 }
 
 #player-list-divider{
-    position: absolute;
     display: flex;
-    left: 40%;
+    position: relative;
     width: 60%;
     height: 100%;
     align-content: center;
@@ -236,10 +228,9 @@ button {
 }
 
 #deskripcija {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
+    align-self: center;
+    width: 50%;
     color: wheat;
     text-align: center;
 }
@@ -271,6 +262,7 @@ button {
     width: 100%; 
     height: 100%; 
 } 
+
 #list-of-players li{ 
     display: flex; 
     position: relative; 
@@ -347,24 +339,6 @@ button {
     100% { transform: scale(1); color: var(--btn-text);}
 }
 
-#back {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    height: 12vh;
-    aspect-ratio: 1;
-    margin: 1vh;
-    background-image: url(resourses/back.png);
-    background-color: transparent;
-    background-repeat: no-repeat;
-    outline: none;
-    border: none;
-    color:white;
-    background-size: contain;
-    background-position: center;
-    font-size: 90%;
-}
-
 .role-note{
     position: absolute;
     top: 0;
@@ -388,6 +362,22 @@ button {
 /* ============================================
    DARK NOVINSKI TEMA - GLOBALNI STILOVI
    ============================================ */
+
+#back {
+    position: absolute;
+    right: 0;
+    bottom: 0 !important;
+    height: 12vh;
+    aspect-ratio: 1;
+    margin: 1vh;
+    background-image: url(resourses/back.png);
+    background-color: transparent;
+    background-repeat: no-repeat;
+    outline: none;
+    border: none;
+    background-size: contain;
+    background-position: center;
+}
 
 .newspaper-theme {
   /* Tamna charcoal pozadina sa plavim tonovima */
@@ -881,10 +871,6 @@ button {
     }
 }
 
-.responsive-phone{
-    display: none;
-}
-
 /* Ambient light particles (opciono) */
 @keyframes float {
     0%, 100% {
@@ -897,40 +883,6 @@ button {
     }
 }
 
-/* ============================================
-   RESPONSIVE - DARK
-   ============================================ */
-
-@media (max-width: 768px) {
-    .newspaper-title {
-        font-size: 2.5em;
-        letter-spacing: 4px;
-    }
-    
-    #player {
-        font-size: 2.5em;
-    }
-
-    .responsive-phone{
-        display: block;
-    }
-
-    .responsive-desktop{
-        display: none;
-    }
-  
-    #role-selection-content {
-        padding: 30px 20px;
-    }
-    
-    #role-holder {
-        padding: 30px 20px;
-    }
-    
-    .wax-seal-container {
-        height: 35vh;
-    }
-}
 
 .cardHolder {
     height: 100%;
@@ -946,6 +898,14 @@ button {
 
 #settingsMenu {
     height: auto;
+}
+
+#subtitle {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    color: wheat;
+    width: 100%;
 }
 
 .card {
@@ -1027,6 +987,19 @@ button {
 
 .card[data-alignment="Neutralno"] .role-alignment{
     color: var(--colorNeutralAccent);
+}
+
+.details-hide{
+    display: none;
+}
+
+.details-show{
+    display: block;
+}
+
+.role-expand{
+    display: none;
+    align-self: center;
 }
 
 .role-category {
@@ -1414,55 +1387,6 @@ button {
     background-position: center;
 }
 
-@media (max-width: 767px) {
-    #mainMenu {
-        background-image: url("resourses/main_menu_bg_phone.png");
-        background-size: contain;
-    }
-    #title {
-        position: absolute;
-        left: 50%;
-        top: -8%;
-        transform: translateX(-50%);
-        font-size: 10vh;
-    }
-    #playerInputForm{
-        position: absolute;
-        bottom: 50%;
-        left: 12%;
-        margin-bottom: 5vh;
-        align-items: center;
-        justify-items: center;
-    }
-    #playerListDivider{
-        left: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 50%;
-        overflow-y: scroll;
-    }
-    #listOfPlayers {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(10, 1fr);
-        row-gap: 10px;
-    }
-    .cardHolder {
-        grid-template-columns: repeat(2, 1fr); 
-    }
-    #pravila {
-        position: absolute;
-        top: 10%;
-        margin: 1%;
-        height: fit-content;
-        background-color: #303d43;
-        outline: 2px solid rgb(255, 255, 255);
-        border: 2px solid rgb(0, 0, 0);
-        border-radius: 3px;
-        color: #f9f9f9;
-        z-index: 100;
-    }
-}
-
 /* NIGHT MENI */
 
 .night-theme {
@@ -1758,6 +1682,7 @@ button {
     gap: 15px;
     padding: 20px;
     grid-template-columns: repeat(6, 1fr);
+    color: var(--text-main);
     align-content: start;
     overflow-y: auto;
 }
@@ -1924,10 +1849,17 @@ button {
     transform: translateY(0);
 }
 
-.confirm-action-btn:disabled {
+.confirm-action-btn:disabled,
+.skip-action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+}
+
+#popup-button{
+    margin: 10px;
+    height: 50px;
+    width: 100px;
 }
 
 /* ============================================
@@ -2001,6 +1933,22 @@ button {
 }
 
 @media (max-width: 900px) {
+    #mainMenu{
+        flex-direction: column;
+    }
+
+    #input-name-divider{
+        width: 100%;
+    }
+
+    #player-list-divider{
+        width: 100%;
+    }
+
+    #blood{
+        display: none;
+    }
+
     .target-grid {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -2016,6 +1964,83 @@ button {
 }
 
 @media (max-width: 768px) {
+    #deskripcija{
+        font-size: 1em;
+        width: 80%;
+    }
+    #player-list-divider{
+        overflow-y: scroll;
+    }
+    #list-of-players {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(10, 1fr);
+        row-gap: 10px;
+    }
+    .delete-button{
+        position: absolute;
+        right: 12%;
+        top: 5%;
+        height: 50%;
+    }
+
+    .cardHolder {
+        grid-template-columns: repeat(1, 1fr); 
+    }
+    .role-name{
+        justify-content: center;
+        text-align: center;
+    }
+    .role-expand{
+        display: block;
+    }
+    .start {
+        width: 50vw;
+    }
+
+    #roleSelection{
+        flex-direction: column-reverse;
+    }
+    .newspaper-header{
+        border-bottom: none;
+        padding-bottom: 20%;
+        background: transparent;
+        box-shadow: none;
+    }
+    .newspaper-subtitle{
+        display: none;
+    }
+    .newspaper-title{
+        display: none;
+    }
+    #player {
+        font-size: 2.5em;
+    }
+    #hold-button{
+        height: 40vh;
+        aspect-ratio: 2/3;
+
+        filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8));
+    }
+    #hide-role {
+        position: relative;
+        height: 20vh;
+    }
+    #role-holder{
+        padding: 0;
+        width: 90%;
+    }
+
+    #managerMenu{
+        height: auto;
+    }
+
+    .action-buttons {
+        padding: 0px;
+    }
+    .action-header {
+        padding: 0px;
+    }
+
     .target-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -2054,4 +2079,5 @@ button {
     }
 }
 
-/* END OF NEW STYLES */
+
+

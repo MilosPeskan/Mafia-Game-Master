@@ -17,6 +17,9 @@ export class PlayerClass{
 
         this.acted = false;
         this.remembered = false;
+        this.wasAmnesiac = false;
+        this.successParasite = false;
+        this.wasParasite = false;
         this.votes = 0;
     }
 

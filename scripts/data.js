@@ -65,7 +65,7 @@ export const ROLES = {
     alignment: "Neutralna", 
     category: "Kontrolna", 
     description: "Tokom noći može preusmeriti sposobnost jednog igrača na drugu metu.",
-    hasMaximum: 1
+    toBeAdded: 1
   },
   12: { 
     role: "Piroman", 
@@ -84,7 +84,8 @@ export const ROLES = {
     role: "Šerif", 
     alignment: "Selo", 
     category: "Ubilačka", 
-    description: "Jednom tokom igre, tokom dana, može izabrati jednog igrača i odmah ga ubiti." 
+    description: "Jednom tokom igre, tokom dana, može izabrati jednog igrača i odmah ga ubiti.",
+    toBeAdded: 1
   },
   15: { 
     role: "Špijun", 
@@ -146,14 +147,16 @@ export const ROLES = {
     alignment: "Selo",
     category: "Kontrolna",
     description: "Može pokrenuti specijalno suđenje gde samo on glasa o pogubljenju mete. Samo jednom može da pogubi.",
-    hasMaximum: 1
+    hasMaximum: 1,
+    toBeAdded: 1
   },
   25: {
     role: "Snajperista",
     alignment: "Mafija",
     category: "Ubilačka",
     description: "Tokom dana može pokušati atentat. Ako tačno pogodi ulogu mete, ona umire.",
-    hasMaximum: 1
+    hasMaximum: 1,
+    toBeAdded: 1
   },
   26: {
     role: "Reporter",
@@ -165,7 +168,8 @@ export const ROLES = {
     role: "Osvetnik",
     alignment: "Selo",
     category: "Haotična",
-    description: "Kada umre, može izabrati jednog igrača koji će takođe biti ubijen."
+    description: "Kada umre, može izabrati jednog igrača koji će takođe biti ubijen.",
+    toBeAdded: 1
   },
   28: {
     role: "Sudija",
@@ -191,7 +195,8 @@ export const ROLES = {
     alignment: "Selo",
     category: "Pomoćna",
     description: "Jednom tokom igre može učiniti da njegov glas vredi kao tri glasa.",
-    hasMaximum: 1
+    hasMaximum: 1,
+    toBeAdded: 1
   },
   32: {
     role: "Parazit",

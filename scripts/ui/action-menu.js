@@ -159,6 +159,14 @@ export class ActionMenu extends UiController {
             return;
         }
 
+        if (this.currentPlayer.successParasite){
+            const message = `Vaša nova uloga je ${this.currentPlayer.getRoleName()}`;
+            this.displayPopup(message);
+            this.currentPlayer.successParasite = false;
+            this.currentPlayer.wasParasite = true;
+            return;
+        }
+
         const columnsPerRow = targets.length > 18 ? 5 : 6;
         this.elements.targetHolder.style.gridTemplateColumns = `repeat(${columnsPerRow}, 1fr)`;
 

@@ -91,10 +91,11 @@ export class NightMenu extends UiController {
         if (roleId == ROLE_IDS.MAFIJAS){
             roleName = "Mafija";
         }
-
-        // At amnesiac step, allways display amnesiac, regardless if he took another role
-        if( roleId == ROLE_IDS.AMNEZICAR){
+        else if( roleId == ROLE_IDS.AMNEZICAR){
             roleName = "Amnezičar";
+        }
+        else if( roleId == ROLE_IDS.PARAZIT){
+            roleName = "Parazit"
         }
 
         this.elements.role.textContent = `Budi se ${roleName}`;
@@ -137,8 +138,11 @@ export class NightMenu extends UiController {
         // Proveri da li je igrač živ
         const allDead = this.gameState.isEveryPlayerWithRoleDead(players);
         const allBlocked = this.gameState.isEveryPlayerWithRoleBlocked(players);
-        if(this.gameState.hasRemembered(players)){
+        if(this.gameState.hasRemembered(players) && roleId == ROLE_IDS.AMNEZICAR){
             this.updateActionButton("se setio");
+            return;
+        } else if(this.gameState.hasParasitised(players) && roleId == ROLE_IDS.PARAZIT){
+            this.updateActionButton("parazitirao");
             return;
         }
         else if(allDead) {

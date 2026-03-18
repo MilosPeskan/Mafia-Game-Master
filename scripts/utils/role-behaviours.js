@@ -27,19 +27,7 @@ export const ROLE_BEHAVIOURS = {
             // Dodaj status da je istražen (opciono, za tracking)
             target.addStatus(STATUS.INVESTIGATED);
             target.addVisitor(player);
-            let text = `Igrač ${target.name} ima ulogu ${target.getRoleName()}`;
-            if(target.hasStatus(STATUS.CENSORED)){
-                text = text.replace(/\S/g, "█");
-            } else if(player.hasStatus(STATUS.CONFUSED)){
-                const role = gameState.getRandomPlayerRole(target);
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            } else if(target.roleId == ROLE_IDS.KUM){
-                const role = gameState.getRandomTownRole();
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            } else if(target.hasStatus(STATUS.FALSIFIED)){
-                const role = gameState.getRandomMafiaRole();
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            }
+            const text = investigate(player, target, gameState);
 
             // Vrati poruku koja će biti prikazana igraču
             return {
@@ -104,19 +92,7 @@ export const ROLE_BEHAVIOURS = {
         execute(player, target, gameState) {
             target.addStatus(STATUS.INVESTIGATED);
             target.addVisitor(player);
-            let text = `Igrač ${target.name} ima ulogu ${target.getRoleName()}`;
-            if(target.hasStatus(STATUS.CENSORED)){
-                text = text.replace(/\S/g, "█");
-            } else if(player.hasStatus(STATUS.CONFUSED)){
-                const role = gameState.getRandomPlayerRole(target);
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            } else if(target.roleId == ROLE_IDS.KUM){
-                const role = gameState.getRandomTownRole();
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            } else if(target.hasStatus(STATUS.FALSIFIED)){
-                const role = gameState.getRandomMafiaRole();
-                text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
-            }
+            const text = investigate(player, target, gameState);
             
             // Vrati poruku koja će biti prikazana igraču
             return {
@@ -349,19 +325,7 @@ export const ROLE_BEHAVIOURS = {
             if (!target.isAlive) {
                 target.addStatus(STATUS.DUG_UP);
                 target.addVisitor(player);
-                let text = `Igrač ${target.name} je bio ${target.getRoleName()}`;
-                if(target.hasStatus(STATUS.CENSORED)){
-                    text = text.replace(/\S/g, "█");
-                } else if(player.hasStatus(STATUS.CONFUSED)){
-                    const role = gameState.getRandomPlayerRole(target);
-                    text = `Igrač ${target.name} je bio ${role.role} (${role.alignment})`
-                } else if(target.roleId == ROLE_IDS.KUM){
-                    const role = gameState.getRandomTownRole();
-                    text = `Igrač ${target.name} je bio ${role.role} (${role.alignment})`
-                } else if(target.hasStatus(STATUS.FALSIFIED)){
-                    const role = gameState.getRandomMafiaRole();
-                    text = `Igrač ${target.name} je bio ${role.role} (${role.alignment})`
-                }
+                const text = investigate(player, target, gameState);
                 
                 return {
                     success: true,
@@ -389,7 +353,7 @@ export const ROLE_BEHAVIOURS = {
                 player.remember();
                 target.addVisitor(player);
                 player.roleId = target.roleId;
-                gameState.switchAmnesiacRoleInQueue(player, target);
+                gameState.switchRoleInQueue(player, target);
                 
                 return {
                     success: true,
@@ -508,24 +472,41 @@ export const ROLE_BEHAVIOURS = {
         }
     },
     30: {// Tamnicar
-        role: "Tamničar",
-        alignment: "Selo",
-        category: "Kontrolna",
-        description: "Tokom noći može zatvoriti jednog igrača. Taj igrač ne može da koristi sposobnosti i ne može biti ubijen te noći."
+        name: "Koga će tamničar zatvoriti?",
+        canTargetDead: false,
+        canTargetSelf: false,
+        needsTarget: true,
+
+        execute(player, target, gameState) {
+            target.addStatus(STATUS.PROTECTED);
+            target.addStatus(STATUS.BLOCKED);
+            target.addVisitor(player);
+            target.block();
+
+            return {
+                success: true,
+                message: `Zatvorili ste igrača ${target.name}.`
+            };
+        }
     },
-    31: {// Gradonacelnik
-        role: "Gradonačelnik",
-        alignment: "Selo",
-        category: "Pomoćna",
-        description: "Jednom tokom igre može učiniti da njegov glas vredi kao tri glasa.",
-        hasMaximum: 1
-    },
+    31: null,
     32: {// Parazit
-        role: "Parazit",
-        alignment: "Neutralna",
-        category: "Haotična",
-        description: "Tokom noći bira jednog igrača, ako taj igrač umre, preuzima ulogu tog igrača.",
-        hasMaximum: 1
+        name: "Za koga će se parazit zakačiti?",
+        canTargetDead: false,
+        canTargetSelf: false,
+        needsTarget: true,
+
+        execute(player, target, gameState) {
+            if(!player.successParasite)
+            target.addStatus(STATUS.PARASITE_TARGET);
+            target.addVisitor(player);
+            gameState.nightActions.parasited.set(target, player)
+
+            return {
+                success: true,
+                message: `Zakačili ste se za igrača ${target.name}.`
+            };
+        }
     }
 };
 
@@ -539,6 +520,30 @@ export function hasNightAction(roleId) {
 
 export function getRoleTextForButton(roleId){
     return ROLE_BEHAVIOURS[Number(roleId)].name;
+}
+
+export function hasParasitised(roleId, player, gameState){
+    if(player.successParasite){
+
+    }
+}
+
+/*Helper za istrazivacke akcije */ 
+export function investigate(player, target, gameState){
+    let text = `Igrač ${target.name} ima ulogu ${target.getRoleName()} (${target.getRoleAlignment()})`;
+    if(target.hasStatus(STATUS.CENSORED)){
+        text = text.replace(/\S/g, "█");
+    } else if(player.hasStatus(STATUS.CONFUSED)){
+        const role = gameState.getRandomPlayerRole(target);
+        text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
+    } else if(target.roleId == ROLE_IDS.KUM){
+        const role = gameState.getRandomTownRole();
+        text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
+    } else if(target.hasStatus(STATUS.FALSIFIED)){
+        const role = gameState.getRandomMafiaRole();
+        text = `Igrač ${target.name} ima ulogu ${role.role} (${role.alignment})`
+    }
+    return text;
 }
 
 /**
