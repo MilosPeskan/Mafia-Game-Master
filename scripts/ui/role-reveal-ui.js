@@ -1,9 +1,13 @@
 import { UiController } from "./ui-controller.js";
 import { ROLES } from "../data.js";
-import { UI_TEXT } from "../constants.js"
+import { MESSAGES, UI_TEXT } from "../constants.js"
 import { HoldButton } from "../utils/hold-button.js";
 
 export class RoleRevealMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement);
 
@@ -12,6 +16,9 @@ export class RoleRevealMenu extends UiController{
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             player: this.rootElement.querySelector("#player"),
@@ -29,6 +36,9 @@ export class RoleRevealMenu extends UiController{
         }
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.setupHoldButton();
 
@@ -41,34 +51,42 @@ export class RoleRevealMenu extends UiController{
         })
     }
 
+    /**
+     * Handle back navigation with confirmation and resets game state
+     */
     handleBackClick(){
-        if (confirm('Da li sigurno želite da se vratite? Progres će biti izgubljen.')) {
+        if (confirm(MESSAGES.BACK_CONFIRM)) {
             this.gameState.resetPlayerIndex();
             this.onBackClick?.();
         }
     }
 
+    /**
+     * Create instance of hold button and bind callbacks
+     */
     setupHoldButton() {
-    // Kreiraj hold button
-        this.holdButton = new HoldButton(
-            this.elements.revealButton
-        );
+        this.holdButton = new HoldButton(this.elements.revealButton);
 
-        // Callback kad se zadrži
         this.holdButton.onComplete = () => {
             this.handleRoleReveal();
         };
 
-        // Callback za progress (vizuelni feedback)
         this.holdButton.onProgress = (progress) => {
             this.updateProgress(progress);
         };
     }
 
+    /**
+     * Update ui to fill progress meter
+     * @param {number} progress - Hold button progress value
+     */
     updateProgress(progress) {
         this.elements.progressMeter.style.height = `${progress}%`;
     }
 
+    /**
+     * Handle role reveal logic on hold button complete and update ui
+     */
     handleRoleReveal(){
         this.elements.progressMeter.style.height = "0%";
 
@@ -84,6 +102,9 @@ export class RoleRevealMenu extends UiController{
         this.elements.roleHolder.classList.add('revealed');
     }
 
+    /**
+     * Update ui elements to display role data
+     */
     displayRoleDetails(){
         this.elements.title.textContent = UI_TEXT.REVEAL_INSTRUCTION;
         const currentRole = this.gameState.getCurrentRole();
@@ -100,6 +121,9 @@ export class RoleRevealMenu extends UiController{
         }
     }
 
+    /**
+     * Update ui to show the next player to learn their role
+     */
     displayPlayerToGo(){
         this.changeElementDisplayType(this.elements.executionTarget, "none");
         if(this.gameState.hasMorePlayers()){
@@ -116,6 +140,11 @@ export class RoleRevealMenu extends UiController{
         this.changeElementDisplayType(this.elements.holdButtonHolder, "block");
     }
 
+    /**
+     * Override base show method
+     * Reset player index and display first player
+     * @param {string} displayType - Css display value
+     */
     show(displayType){
         super.show(displayType);
         this.gameState.resetPlayerIndex();
