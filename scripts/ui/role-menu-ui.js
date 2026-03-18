@@ -1,7 +1,12 @@
 import { UiController } from "./ui-controller.js";
 import { ROLES } from "../data.js";
+import { MESSAGES } from "../constants.js";
 
 export class RoleMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement)
 
@@ -10,6 +15,9 @@ export class RoleMenu extends UiController{
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             cardHolder: this.rootElement.querySelector("#cardHolder"),
@@ -18,6 +26,9 @@ export class RoleMenu extends UiController{
         };
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.cardHolder, "click", (e) => {
             if(e.target.classList.contains("add-role")){
@@ -38,12 +49,13 @@ export class RoleMenu extends UiController{
         })
     }
 
+    /**
+     * Creates HTML elements for all roles from ROLES object
+     */
     listRoles(){
         this.elements.cardHolder.innerHTML = "";
 
         for(const [id, data] of Object.entries(ROLES)){
-
-
             const card = this.createRoleCards(id, data);
             this.elements.cardHolder.appendChild(card);
             this.updateRoleCounter(id);
@@ -52,7 +64,12 @@ export class RoleMenu extends UiController{
         this.updateCounter();
     }
 
-    // metoda za kreiranje HTML kartica sa ulogama
+    /**
+     * Fill role element with content
+     * @param {string} id - Key from ROLE dictionary
+     * @param {{ role: string, alignment: string, category: string, description: string, hasMaximum?: number }} data - Value from ROLE dictionary
+     * @returns {HTMLElement} Role card
+     */
     createRoleCards(id, data){
         const roleCard = document.createElement("div");
         roleCard.classList = "card";
@@ -87,7 +104,11 @@ export class RoleMenu extends UiController{
         return roleCard;
     }
 
-    // metoda za kreiranje kontrola za dodavanje uloga
+    /**
+     * Creates controls for role card
+     * @param {string} roleId - Key from ROLE dictionary
+     * @returns {HTMLElement} Role card controls
+     */
     createRoleControls(roleId){
         const container = document.createElement("div");
         container.className = "number-div";
@@ -110,6 +131,10 @@ export class RoleMenu extends UiController{
         return container;
     }
 
+    /**
+     * Add role to game state and update individual and total role counter
+     * @param {string} roleId 
+     */
     handleAddRole(roleId){
         try{
             this.gameState.addRole(roleId);
@@ -120,6 +145,10 @@ export class RoleMenu extends UiController{
         }
     }
 
+    /**
+     * Remove role from game state and update individual and total role counter
+     * @param {string} roleId 
+     */
     handleRemoveRole(roleId){
         try{
             this.gameState.removeRole(roleId);
@@ -130,6 +159,10 @@ export class RoleMenu extends UiController{
         }
     }
 
+    /**
+     * Update number of roles in role pool of specific role
+     * @param {string} roleId 
+     */
     updateRoleCounter(roleId){
         const counter = this.elements.cardHolder.querySelector(
             `.counter[data-role-id="${roleId}"]`
@@ -140,6 +173,10 @@ export class RoleMenu extends UiController{
         }
     }
 
+    /**
+     * Update start button ui with current role count vs player count
+     * Play start button animation when counts match
+     */
     updateCounter(){
         const roleNumber = this.gameState.getNumberOfRoles();
         const playerNumber = this.gameState.getNumberOfPlayers();
@@ -151,12 +188,14 @@ export class RoleMenu extends UiController{
         }
     }
 
+    /**
+     * Add animation class to start buttons text
+     */
     emphasizeStart(){
         const btn = this.elements.startButton;
 
         let span = btn.querySelector("span");
 
-        // ako nema, napravi ga
         if (!span) {
             span = document.createElement("span");
             span.textContent = btn.textContent;
@@ -164,22 +203,29 @@ export class RoleMenu extends UiController{
             btn.appendChild(span);
         }
 
-        // reset animacije
         span.classList.remove("pulse");
-        void span.offsetWidth; // reflow
+        void span.offsetWidth; 
         span.classList.add("pulse");
     }
 
+    /**
+     * Check if enough roles added and call start game
+     */
     handleStart(){
         const missingRoles = this.gameState.getNumberOfMissingRoles();
         if(missingRoles < 0) {
-            alert(`Potrebno je dodati još ${missingRoles * -1} uloga!`)
+            alert(MESSAGES.MISSING_ROLES(missingRoles * -1))
         }
         else {
             this.onStartGame?.();
         }
     }
 
+    /**
+     * Override base show method
+     * Generate all role cards and update start button ui
+     * @param {string} displayType - Css display value
+     */
     show(displayType){
         super.show(displayType);
         this.listRoles();
