@@ -5,16 +5,17 @@ export function setupDevTools(game, ui) {
         game.players = [];
         game.roles = [];
 
-        const players = ["Marko", "Nikola", "Jovan", "Stefan"];
+        const players = ["Marko", "Nikola", "Jovan", "Stefan", "Ivan", "Nemanja"];
 
         players.forEach(name => game.addPlayer(name));
 
         // Example role IDs
-        [1,2,3,4].forEach(role => game.addRole(role));
+        [1,2,13,12,32,21].forEach(role => game.addRole(role));
 
         game.initializeGame();
 
         console.log("✅ Test players created");
+        console.log(game.players)
     }
 
     function goto(menu) {
@@ -57,6 +58,4 @@ export function setupDevTools(game, ui) {
             skipToGame();
         }
     })
-
-    console.log("🔥 Dev tools ready: type 'debug' in console");
 }
