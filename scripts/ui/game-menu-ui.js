@@ -2,6 +2,10 @@ import { DEAD_ICON_PATH, STATUS } from "../constants.js";
 import { UiController } from "./ui-controller.js";
 
 export class GameMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement),
 
@@ -10,6 +14,9 @@ export class GameMenu extends UiController{
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             nightButton: this.rootElement.querySelector("#night-button"),
@@ -22,6 +29,9 @@ export class GameMenu extends UiController{
         };
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.nightButton, "click", ()=>{
             this.handleNightClicked();
