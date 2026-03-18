@@ -1,8 +1,12 @@
 import { UiController } from "./ui-controller.js";
 import { getRoleTextForButton, hasNightAction } from "../utils/role-behaviours.js";
-import { ROLE_IDS } from "../constants.js";
+import { MESSAGES, ROLE_IDS } from "../constants.js";
 
 export class NightMenu extends UiController {
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement);
 
@@ -11,6 +15,9 @@ export class NightMenu extends UiController {
         this.attachEventListeners();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             role: this.rootElement.querySelector("#wake-up-role"),
@@ -23,6 +30,9 @@ export class NightMenu extends UiController {
         };
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.actionButton, "click", () => {
             this.handleActionClicked();
@@ -37,16 +47,22 @@ export class NightMenu extends UiController {
         })
     }
 
+    /**
+     * Hide process night button and begin processing night events
+     */
     handleNightComplete(){
         this.elements.processButton.style.display = "none";
         this.onNightComplete?.(this.gameState.calculateNight());
     }
 
+    /**
+     * Transition to action menu with current players and role
+     */
     handleActionClicked(){
         const currentStep = this.gameState.getCurrentNightStep();
         
         if (!currentStep) {
-            console.error("Nema trenutnog koraka!");
+            console.error(MESSAGES.NO_CURRENT_STEP);
             return;
         }
 
@@ -56,20 +72,27 @@ export class NightMenu extends UiController {
         this.onActionRequested?.(roleId, players);
     }
 
+    /**
+     * Display role that is waking up and all players with that role (or alignment)
+     * If night is over, show narrator helper to wake up everyone
+     * Call to update action buttons
+     */
     displayCurrentStep(){
         const currentStep = this.gameState.getCurrentNightStep();
 
         if(!currentStep){
-            // Noć je gotova - prikaži rezime i završi
-            this.displayNightSummary();
+            this.displayNightEnd();
             return;
         }
 
         const { roleId, players } = currentStep;
         let roleName = players[0].getRoleName();
+        // If mafia only has unique roles, show all mafia roles as mafia in this step
         if (roleId == ROLE_IDS.MAFIJAS){
             roleName = "Mafija";
         }
+
+        // At amnesiac step, allways display amnesiac, regardless if he took another role
         if( roleId == ROLE_IDS.AMNEZICAR){
             roleName = "Amnezičar";
         }
@@ -90,15 +113,25 @@ export class NightMenu extends UiController {
         this.elements.skipButton.textContent = "Preskoči";
         this.elements.statusStamp.style.display = "none";
 
+        console.log(typeof roleId, typeof players)
         this.updateMenu(roleId, players);
     }
 
+    /**
+     * Update night progress
+     */
     updateProgress() {
         const current = this.gameState.nightIndex + 1;
         const total = this.gameState.nightQueue.length;
         this.elements.progressText.textContent = `Korak ${current} / ${total}`;
     }
 
+    /**
+     * 
+     * @param {*} roleId 
+     * @param {*} players 
+     * @returns 
+     */
     updateMenu(roleId, players){
         this.updateProgress();
         // Proveri da li je igrač živ
@@ -138,7 +171,7 @@ export class NightMenu extends UiController {
         this.displayCurrentStep();
     }
 
-    displayNightSummary() {
+    displayNightEnd() {
         // Noć je završena - prikaži rezime
         this.elements.role.textContent = "Noć je završena";
         this.elements.playerName.textContent = "grad se budi";
