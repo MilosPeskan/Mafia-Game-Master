@@ -1,6 +1,10 @@
 import { UiController } from "./ui-controller.js";
 
 export class LynchMenu extends UiController{
+    /**
+     * @param {HTMLElement} rootElement - Html element that contains the menu ui
+     * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
+     */
     constructor(rootElement, gameState){
         super(rootElement);
 
@@ -11,6 +15,9 @@ export class LynchMenu extends UiController{
         this.playerCounterMap = new Map();
     }
 
+    /**
+     * Queries and stores all required DOM elements for the menu
+     */
     initializeElements(){
         this.elements = {
             playerHolder: this.rootElement.querySelector("#lynch-holder"),
@@ -20,6 +27,9 @@ export class LynchMenu extends UiController{
         }
     }
 
+    /**
+     * Attaches event listeners to ui elements
+     */
     attachEventListeners(){
         this.addEventListener(this.elements.confirmButton, "click", () =>{
             this.onLynchClicked?.();
