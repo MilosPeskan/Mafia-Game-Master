@@ -39,5 +39,3 @@ export function lockToLandscape() {
   }
 }
 
-// Call this function from a user interaction event, e.g., a button click
-// <button onclick="lockToLandscape()">Enter Fullscreen and Lock Landscape</button>
