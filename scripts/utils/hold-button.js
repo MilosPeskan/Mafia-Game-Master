@@ -128,9 +128,4 @@ export class HoldButton {
             this.onComplete();
         }
     }
-
-    destroy() {
-        this.cancelHold();
-        // Cleanup event listeners ako treba
-    }
 }
