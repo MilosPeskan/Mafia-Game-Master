@@ -76,6 +76,14 @@ export class ActionMenu extends UiController {
         });
     }
 
+    /**
+     * Displays current role name and action, resets action button controlls, 
+     * and calls for generation of valid targets
+     * 
+     * For roles where players act individualy generates player selection buttons
+     * @param {number} roleId Key value from ROLES dictionary 
+     * @param {import("../player-manager.js").PlayerClass[]} players List of player instances
+     */
     setupAction(roleId, players) {
         this.currentRole = roleId;
         this.players = players;
@@ -95,7 +103,6 @@ export class ActionMenu extends UiController {
             this.generatePlayerButtons(players);
         }
 
-        // Prikaži skip dugme ako uloga može preskočiti akciju
         this.elements.skipButton.style.display = "block";
         this.elements.secondaryButton.style.display = "none"
         this.elements.confirmButton.disabled = false;
@@ -111,6 +118,12 @@ export class ActionMenu extends UiController {
         this.displayTargets();
     }
 
+    /**
+     * Generates current roles player buttons and disabels them if player is dead or blocked
+     * 
+     * Stores all players in list and picks first valid player to act
+     * @param {import("../player-manager.js").PlayerClass[]} players List of player instances
+     */
     generatePlayerButtons(players){
         players.forEach(player => {
             const card = document.createElement("button");
@@ -122,7 +135,7 @@ export class ActionMenu extends UiController {
             name.classList.add("player-name");
             name.textContent = player.name;
 
-            // Onemoguci selektovanje ako je igrac mrtav ili blokiran
+            // Disable selectiong if player is dead or blocked
             if (!player.checkIfPlayerAlive()) {
                 card.classList.add("dead-player");
                 card.disabled = true;
@@ -135,8 +148,8 @@ export class ActionMenu extends UiController {
                 card.classList.add("blocked-player");
                 card.disabled = true;
                 const blockLabel = document.createElement("span");
-                deadLabel.className = "block-label";
-                deadLabel.textContent = "⦸";
+                blockLabel.className = "block-label";
+                blockLabel.textContent = "⦸";
                 player.acted = true;
                 name.prepend(blockLabel);
             }
@@ -145,13 +158,19 @@ export class ActionMenu extends UiController {
             this.elements.playerHolder.appendChild(card);
         });
         const allCards = [...this.elements.playerHolder.querySelectorAll(".current-player-card")];
-        this.selectPlayer(this.findFirstCanAct(allCards));
+        const next = this.findFirstCanAct(allCards);
+        if (next) this.selectPlayer(next);
     }
 
+    /**
+     * Generates all valid targets for action in a dynamic grid
+     * 
+     * Calls popup to show parasite new role if successfuly parasited
+     */
     displayTargets() {        
         this.elements.targetHolder.innerHTML = "";
 
-        // Koristi helper funkciju iz role-behaviours
+        // Uses helper function from role-behaviours
         const targets = getValidTargets(this.currentRole, this.currentPlayer, this.gameState);
 
         if (targets.length === 0) {
@@ -176,6 +195,11 @@ export class ActionMenu extends UiController {
         });
     }
 
+    /**
+     * Generates player target card
+     * @param {import("../player-manager.js").PlayerClass[]} player Player instance
+     * @returns {HTMLElement} Player target card
+     */
     createTargetCard(player) {
         const card = document.createElement("div");
         card.classList.add("target-card");
@@ -190,7 +214,7 @@ export class ActionMenu extends UiController {
         name.classList.add("target-name");
         name.textContent = player.name;
 
-        // Dodaj indicator za mrtve igrače
+        // Add indicator for dead players
         if (!player.isAlive) {
             card.classList.add("dead-player");
             const deadLabel = document.createElement("span");
@@ -203,39 +227,50 @@ export class ActionMenu extends UiController {
         return card;
     }
 
+    /**
+     * Handles player actor card selection and rerenders player action cards to show new selection
+     * 
+     * Rerender targets to show valid targets for specific player instance
+     * @param {HTMLElement} card Player actor card
+     */
     selectPlayer(card) {
-        // Ukloni prethodnu selekciju
+        // Remove previous selection
         const allCards = this.elements.playerHolder.querySelectorAll(".current-player-card");
         allCards.forEach(c => c.classList.remove("selected"));
         
-        // Dodaj novu selekciju
+        // Add new selection
         card.classList.add("selected");
         this.currentPlayer = card._player;
         this.displayTargets();
     }
 
+    /**
+     * Handles target card selection and rerenders target cards to show new selection
+     * @param {HTMLElement} card Player target card
+     */
     selectTarget(card) {
-        // Ukloni prethodnu selekciju
+        // Remove previous selection
         const allCards = this.elements.targetHolder.querySelectorAll(".target-card");
         allCards.forEach(c => c.classList.remove("selected"));
 
-        // Dodaj novu selekciju
+        // Add new selection
         card.classList.add("selected");
         this.selectedTarget = card._player;
     }
 
+    /**
+     * Executes primary role action based on current selection
+     */
     async handleConfirm() {
         const behaviour = ROLE_BEHAVIOURS[Number(this.currentRole)];
         
-        // Proveri da li uloga uopšte ima akciju
         if (!behaviour) {
             this.displayResult("Ova uloga nema noćnu akciju");
             return;
         }
 
-        // Proveri da li treba meta (neke uloge ne trebaju, npr. Špijun)
+        // Check if target needed
         if (!behaviour.needsTarget && behaviour.execute) {
-            // Izvrši akciju bez mete
             const result = behaviour.execute(
                 this.currentPlayer,
                 null,
@@ -246,19 +281,11 @@ export class ActionMenu extends UiController {
             return;
         }
 
-        // Za uloge koje trebaju metu
         if (!this.selectedTarget) {
             this.displayResult("Molimo izaberite metu!");
             return;
         }
 
-        // Proveri da li je blokirano vrv ne treba funkcija
-        if (this.currentPlayer.checkIfPlayerBlocked()) {
-            this.displayResult("Blokirani ste! Ne možete koristiti sposobnost.");
-            return;
-        }
-
-        // Izvrši akciju
         try {
             const result = behaviour.execute(
                 this.currentPlayer,
@@ -276,18 +303,19 @@ export class ActionMenu extends UiController {
         }
     }
 
+    /**
+     * Executes secondary role action based on current selection
+     */
     handleSecondary() {
         const behaviour = ROLE_BEHAVIOURS[Number(this.currentRole)];
         
-        // Proveri da li uloga uopšte ima akciju
         if (!behaviour) {
             this.displayResult("Ova uloga nema sekondarnu akciju");
             return;
         }
 
-        // Proveri da li treba meta (neke uloge ne trebaju, npr. Špijun)
+        // Check if secondary action needs target
         if (!behaviour.needsSecondTarget && behaviour.execute) {
-            // Izvrši akciju bez mete
             const result = behaviour.execute(
                 this.currentPlayer,
                 null,
@@ -299,19 +327,11 @@ export class ActionMenu extends UiController {
             return;
         }
 
-        // Za uloge koje trebaju metu
         if (!this.selectedTarget) {
             this.displayResult("Molimo izaberite metu!");
             return;
         }
 
-        // Proveri da li je blokirano vrv ne treba funkcija
-        if (this.currentPlayer.checkIfPlayerBlocked()) {
-            this.displayResult("Blokirani ste! Ne možete koristiti sposobnost.");
-            return;
-        }
-
-        // Izvrši akciju
         try {
             const result = behaviour.execute(
                 this.currentPlayer,
@@ -331,6 +351,12 @@ export class ActionMenu extends UiController {
         }
     }
 
+    /**
+     * Displays action results and progresses actors and night 
+     * @param {{success: boolean, message?: string, popup?: string, result?: any}} result Action result
+     * @param {import("../utils/role-behaviours.js").RoleBehaviour} behaviour Specific role behaviour
+     * @returns 
+     */
     handleActionResult(result, behaviour) {
         if (result && result.popup){
             this.displayPopup(result.popup);
@@ -343,12 +369,13 @@ export class ActionMenu extends UiController {
             this.displayResult("Akcija izvršena");
         }
         this.currentPlayer.acted = true;
+        // if every player acted, wait and progress night
         if(this.gameState.isEveryPlayerActed(this.players) || behaviour.allForOne){
-            // Sačekaj kratko pa nastavi
             setTimeout(() => {
                 this.onActionComplete?.();
             }, 1000);
         }
+        // else find first valid actor
         else {
             const allCards = [...this.elements.playerHolder.querySelectorAll(".current-player-card")];
             allCards.forEach((card) => {
@@ -357,14 +384,21 @@ export class ActionMenu extends UiController {
                     card.classList.add("acted")
                 }
             })
-            this.selectPlayer(this.findFirstCanAct(allCards));
+            const next = this.findFirstCanAct(allCards);
+            if (next) this.selectPlayer(next);
         }
     }
     
+    /**
+     * Finds first player actor that is valid for acting
+     * @param {HTMLElement} cards Player actor cards 
+     * @returns 
+     */
     findFirstCanAct(cards){
         return cards.find(card => card._player.acted === false);
     }
 
+    /** Informs that action was skipped and sets a timer for sending a signal to progress the night */
     handleSkip() {
         this.displayResult("Preskočeno");
         setTimeout(() => {
@@ -372,6 +406,12 @@ export class ActionMenu extends UiController {
         }, 1000);
     }
 
+    /**
+     * Shows action summary if role has an action summary message.
+     * 
+     * Creates timer to automaticaly hide action summary
+     * @param {string} message Action summary 
+     */
     displayResult(message) {
         if(this.elements.resultDisplay) {
             this.elements.resultDisplay.textContent = message;
@@ -383,15 +423,27 @@ export class ActionMenu extends UiController {
         }
     }
 
+    /**
+     * Shows action result message in a popup window
+     * @param {string} message Action result message 
+     */
     displayPopup(message){
         this.popup();
         this.elements.popupText.textContent = message;
     }
 
+    /**
+     * Changes visibility of popup
+     * @param {string} displayType css display type 
+     */
     popup(displayType = "block"){
         this.changeElementDisplayType(this.elements.popupWindow, displayType);
     }
 
+    /**
+     * Hides popup window and starts a timer to send a signal that action was completed and to progress
+     * night by transitioning to night menu
+     */
     onPopupClicked(){
         this.popup("none");
         setTimeout(() => {
