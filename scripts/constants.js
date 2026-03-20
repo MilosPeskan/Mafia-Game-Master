@@ -1,5 +1,6 @@
 export const CONFIG = {
   MAX_PLAYERS: 20,
+  MIN_PLAYERS: 4,
   MIN_NAME_LENGHT: 2,
   MAX_NAME_LENGTH: 20,
   VISITOR_NUMBER_OF_PLAYERS_MARKED: 3,
@@ -48,7 +49,8 @@ export const MESSAGES = {
   MAX_PLAYERS_REACHED: (max) => `Dostignut maksimum od ${max} igrača!`,
   BACK_CONFIRM: `Da li sigurno želite da se vratite? Progres će biti izgubljen.`,
   MISSING_ROLES: (number) => `Potrebno je dodati još ${number} uloga!`,
-  NO_CURRENT_STEP: `Nema trenutnog koraka!`
+  NO_CURRENT_STEP: `Nema trenutnog koraka!`,
+  MIN_PLAYERS_REQUIRED: `Igra mora da ima minimum ${CONFIG.MIN_PLAYERS} igrača!`
 };
 
 export const LYNCH_MESSAGE = {
