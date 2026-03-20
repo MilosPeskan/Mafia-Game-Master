@@ -135,6 +135,14 @@ export class GameState{
     }
 
     /**
+     * Check if minimum number of players have been added to start the game
+     * @returns {boolean} True if equal or more than minimum
+     */
+    hasMinimumRequiredPlayers(){
+        return this.getNumberOfPlayers() >= CONFIG.MIN_PLAYERS
+    }
+
+    /**
      * Add role id to pendingRoles array if number of pending roles is less than number of players and that role hasn`t reached max number
      * @param {string} roleId Key from ROLES dictionary
      */
@@ -575,6 +583,15 @@ export class GameState{
         this.survived = [];
         this.applyKills();
         return this.showNightResults();
+    }
+
+    /**
+     * Remove judged status from every player
+     */
+    removeJudgedStatus(){
+        this.players.forEach(player => {
+            player.removeStatus(STATUS.JUDGED);
+        });
     }
 
     /**
