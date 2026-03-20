@@ -1,11 +1,31 @@
 /**
- * ROLE BEHAVIOURS - Definicije noćnih akcija za svaku ulogu
- * 
- * Svaki behaviour ima:
- * - name: Tekst koji se prikazuje u UI
- * - canTargetDead: Da li može birati mrtve igrače
- * - canTargetSelf: Da li može birati sebe
- * - execute: Funkcija koja izvršava akciju (menja game state)
+ * ROLE BEHAVIOURS - Defines night actions and rules for each role.
+ *
+ * Each behaviour object contains:
+ * - name: UI display text
+ * - canTargetDead: Whether dead players can be targeted
+ * - canTargetSelf: Whether self-targeting is allowed
+ * - needsTarget: Whether a target is required
+ * - execute: Function that executes the role action
+ */
+
+/**
+ * @typedef {Object} RoleBehaviour
+ * @property {string} name
+ * @property {boolean} [canTargetDead]
+ * @property {boolean} [canTargetSelf]
+ * @property {boolean} [needsTarget]
+ * @property {boolean} [needsTwoTargets]
+ * @property {boolean} [needsChoice]
+ * @property {(player: import("../player-manager.js").PlayerClass, target: any, gameState: import("../game-state.js").GameState, ...args: any[]) => RoleResult} execute
+ */
+
+/**
+ * @typedef {Object} RoleResult
+ * @property {boolean} success
+ * @property {string} [message]
+ * @property {string} [popup]
+ * @property {any} [result]
  */
 
 import { ROLE_IDS, ROLE_MESSAGE, STATUS } from "../constants.js";
@@ -24,12 +44,10 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {            
-            // Dodaj status da je istražen (opciono, za tracking)
             target.addStatus(STATUS.INVESTIGATED);
             target.addVisitor(player);
             const text = investigate(player, target, gameState);
 
-            // Vrati poruku koja će biti prikazana igraču
             return {
                 success: true,
                 result: null, 
@@ -47,7 +65,6 @@ export const ROLE_BEHAVIOURS = {
         execute(player, target, gameState) {
             target.addStatus(STATUS.PROTECTED);
             target.addVisitor(player);
-            // Dodaj u listu zaštićenih
                         
             return {
                 success: true,
@@ -68,7 +85,6 @@ export const ROLE_BEHAVIOURS = {
         needsVoting: true,
         
         execute(player, target, gameState) {
-            // Svaki mafijaš glasa za metu
             target.addStatus(STATUS.ATTACK);
             target.addVisitor(player);
             gameState.nightActions.kills.set(player, target);
@@ -94,7 +110,6 @@ export const ROLE_BEHAVIOURS = {
             target.addVisitor(player);
             const text = investigate(player, target, gameState);
             
-            // Vrati poruku koja će biti prikazana igraču
             return {
                 success: true,
                 result: null, 
@@ -110,7 +125,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {
-            // Blokiraj akciju cilja
             target.addStatus(STATUS.BLOCKED);
             target.addVisitor(player);
             target.block();
@@ -129,7 +143,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {
-            // Dodaj u listu za ubistvo
             target.addStatus(STATUS.ATTACK);
             target.addVisitor(player);
             gameState.nightActions.kills.set(player, target);
@@ -152,7 +165,6 @@ export const ROLE_BEHAVIOURS = {
         needsTwoTargets: true, // Bira koga i na koga
         
         execute(player, target1, target2, gameState) {
-            // Preusmeri akciju target1 na target2
             gameState.nightActions.switched.set(target1.id, target2.id);
             
             return {
@@ -174,7 +186,7 @@ export const ROLE_BEHAVIOURS = {
         
         execute(player, target, gameState, action = "douse") {
             if (action === "douse") {
-                // Polij benzinom
+                // douse player
                 target.addStatus(STATUS.DOUSED);
                 target.addVisitor(player);
                 
@@ -183,7 +195,7 @@ export const ROLE_BEHAVIOURS = {
                     message: `Poliveni igrač: ${target.name}`
                 };
             } else if (action === "ignite") {
-                // Zapali sve polivene
+                // ignite every doused player
                 const dousedPlayers = gameState.players.filter(p => p.hasStatus(STATUS.DOUSED));
                 
                 dousedPlayers.forEach(p => {
@@ -208,7 +220,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {
-            // Slično doktoru, ali umire ako je meta napadnuta
             target.addStatus(STATUS.BODYGUARDED(player.name));
             target.addVisitor(player);
             gameState.nightActions.bodyguard.set(player, target);
@@ -229,7 +240,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: false,
         
         execute(player, target, gameState) {
-            // Špijun vidi sve koje je mafija posetila
             let mafiaVisits = [];
             const mafiaVisited = gameState.players.filter(p => p.isVisitedByMafia());
             if (mafiaVisited.length > 0) {
@@ -252,8 +262,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {
-            // Proveri koga je meta posetila
-            // Za sada samo zabeleži
             target.addStatus(STATUS.TRACKED);
             target.addVisitor(player);
             let visited = `Igrač ${target.name} nikog nije posetio`;
@@ -302,7 +310,6 @@ export const ROLE_BEHAVIOURS = {
         needsTarget: true,
         
         execute(player, target, gameState) {
-            // Blokiraj akciju cilja
             target.addStatus(STATUS.BLOCKED);
             target.addVisitor(player);
             target.block();
@@ -329,7 +336,7 @@ export const ROLE_BEHAVIOURS = {
                 
                 return {
                     success: true,
-                    result: role,
+                    result: null,
                     popup: text
                 };
             }
@@ -349,7 +356,6 @@ export const ROLE_BEHAVIOURS = {
         
         execute(player, target, gameState) {
             if (!target.isAlive) {
-                // Preuzmi ulogu mrtvog igrača
                 player.remember();
                 target.addVisitor(player);
                 player.roleId = target.roleId;
@@ -511,24 +517,32 @@ export const ROLE_BEHAVIOURS = {
 };
 
 /**
- * Helper funkcija za proveru da li uloga ima noćnu akciju
+ * Helper function to check if role has a night action
+ * @param {number} roleId Key in ROLE_BEHAVIOURS dictionary 
+ * @returns {boolean}
  */
 export function hasNightAction(roleId) {
     const behaviour = ROLE_BEHAVIOURS[Number(roleId)];
     return behaviour !== null && behaviour !== undefined;
 }
 
+/**
+ * Helper function to get role name from acting role
+ * @param {number} roleId Key in ROLES dictionary 
+ * @returns {string} Name of the role
+ */
 export function getRoleTextForButton(roleId){
-    return ROLE_BEHAVIOURS[Number(roleId)].name;
+    const behaviour = ROLE_BEHAVIOURS[Number(roleId)];
+    return behaviour ? behaviour.name : "";
 }
 
-export function hasParasitised(roleId, player, gameState){
-    if(player.successParasite){
-
-    }
-}
-
-/*Helper za istrazivacke akcije */ 
+/**
+ * Helper function for investigative roles
+ * @param {import("../player-manager.js").PlayerClass} player Actor player instance
+ * @param {import("../player-manager.js").PlayerClass} target Target player instance
+ * @param {import("../game-state.js").GameState} gameState Game state singleton 
+ * @returns {string} Message results of investigation
+ */
 export function investigate(player, target, gameState){
     let text = `Igrač ${target.name} ima ulogu ${target.getRoleName()} (${target.getRoleAlignment()})`;
     if(target.hasStatus(STATUS.CENSORED)){
@@ -547,7 +561,11 @@ export function investigate(player, target, gameState){
 }
 
 /**
- * Helper funkcija za dobijanje valid targets za ulogu
+ * Helper function for investigative roles
+ * @param {import("../player-manager.js").PlayerClass} player Actor player instance
+ * @param {import("../player-manager.js").PlayerClass} target Target player instance
+ * @param {import("../game-state.js").GameState} gameState Game state singleton 
+ * @returns {import("../player-manager.js").PlayerClass[]} List of valid player object targets
  */
 export function getValidTargets(roleId, player, gameState) {
     const behaviour = ROLE_BEHAVIOURS[Number(roleId)];
@@ -562,13 +580,14 @@ export function getValidTargets(roleId, player, gameState) {
         targets = gameState.getAlivePlayers();
     }
 
+    // Remove targets already affected by pyromaniac or visitor effects
     if(roleId == ROLE_IDS.PIROMAN){
         targets = targets.filter(t => !t.hasStatus(STATUS.DOUSED));
     } else if (roleId == ROLE_IDS.POSETILAC){
         targets = targets.filter(t => !t.hasStatus(STATUS.MARKED_BY_VISITOR));
     }
     
-    // Ukloni sebe ako ne može sebe
+    // Remove self if self cant be selected
     if (!behaviour.canTargetSelf) {
         targets = targets.filter(t => t.id !== player.id);
     }
