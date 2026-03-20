@@ -7,7 +7,7 @@ export class InfoMenu extends UiController{
      * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
      */
     constructor(rootElement, gameState){
-        super(rootElement),
+        super(rootElement);
         this.gameState = gameState;
 
         this.initializeElements();
@@ -38,6 +38,12 @@ export class InfoMenu extends UiController{
         })
     }
 
+    /**
+     * Displays all player information
+     * 
+     * If player is executioner, displays execution target
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     */
     displayInfo(player){
         this.displaySearched(player);
 
@@ -47,6 +53,10 @@ export class InfoMenu extends UiController{
         }
     }
 
+    /**
+     * Displays player information
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     */
     displaySearched(player){
         this.elements.name.textContent = player.name;
         this.elements.role.textContent = player.getRoleName();
@@ -54,6 +64,11 @@ export class InfoMenu extends UiController{
         this.elements.desc.textContent = player.getRoleDescription();
     }
 
+    /**
+     * Override base show method
+     * Hide executioner target ui
+     * @param {string} displayType - Css display value
+     */
     show(displayType){
         super.show(displayType);
         this.elements.target.style.display = "none";
