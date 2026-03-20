@@ -48,6 +48,9 @@ export class LynchMenu extends UiController{
         })
     }
 
+    /**
+     * Displays all alive players in a dynamic grid
+     */
     displayPlayers(){
         this.elements.playerHolder.innerHTML = "";
 
@@ -62,6 +65,11 @@ export class LynchMenu extends UiController{
         }
     }
 
+    /**
+     * Creates player card element
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     * @returns {HTMLElement} player card element
+     */
     createPlayerCard(player){
         const card = document.createElement("div");
         card.classList.add("player-card");
@@ -82,6 +90,11 @@ export class LynchMenu extends UiController{
         return card;
     }
 
+    /**
+     * Creates lynch controls for player card element
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     * @returns {HTMLElement} Lynch controls
+     */
     createLynchControls(player){
         const container = document.createElement("div");
         container.className = "controls-div";
@@ -105,6 +118,12 @@ export class LynchMenu extends UiController{
         return container;
     }
 
+    /**
+     * Adds lynch vote to specific player and updates that players vote counter
+     * 
+     * Updates global lynch vote counter
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     */
     handleAddVote(player){
         try{
             this.gameState.addLynchVote(player);
@@ -115,6 +134,12 @@ export class LynchMenu extends UiController{
         }
     }
 
+    /**
+     * Removes lynch vote from specific player and updates that players vote counter
+     * 
+     * Updates global lynch vote counter
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     */
     handleRemoveVote(player){
         try{
             this.gameState.removeLynchVote(player);
@@ -125,10 +150,15 @@ export class LynchMenu extends UiController{
         }
     }
 
+    /** Update global lync vote counter with number of total votes vs number of alive players*/
     updateCounter(){
         this.elements.votes.textContent = `${this.gameState.getLynchVotes()} / ${this.gameState.getNumberOfAlivePlayers()}`
     }
 
+    /**
+     * Finds matching player and updates its number of lynch votes
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     */
     updateVoteCounter(player){
         const counter = this.playerCounterMap.get(player.id);
 
@@ -137,11 +167,21 @@ export class LynchMenu extends UiController{
         }
     }
 
+    /** 
+     * Resets all players lynch votes and global lynch votes
+     *
+     * Sends signal to return to game menu  
+     */
     handleCancel(){
         this.onCancelClicked?.();
         this.gameState.resetLynch();
     }
 
+    /**
+     * Override base show method
+     * Generate all player cards and updates vote counter
+     * @param {string} displayType - Css display value
+     */
     show(displayType){
         super.show(displayType);
         this.displayPlayers();
