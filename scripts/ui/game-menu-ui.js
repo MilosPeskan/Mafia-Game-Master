@@ -7,7 +7,7 @@ export class GameMenu extends UiController{
      * @param {import("../game-state.js").GameState} gameState - Singleton instance that manages game flow
      */
     constructor(rootElement, gameState){
-        super(rootElement),
+        super(rootElement);
 
         this.gameState = gameState;
         this.initializeElements();
@@ -53,13 +53,17 @@ export class GameMenu extends UiController{
         });
     }
 
+    /**
+     * Removes judge protections and sends signal for night to begin
+     */
     handleNightClicked(){
-        this.gameState.players.forEach(player => {
-            player.removeStatus(STATUS.JUDGED);
-        });
+        this.gameState.removeJudgedStatus();
         this.onNightClicked?.();
     }
 
+    /**
+     * Displays all players in a dynamic grid
+     */
     displayPlayers(){
         this.elements.playerCardHolder.innerHTML = "";
 
@@ -75,13 +79,18 @@ export class GameMenu extends UiController{
         }
     }
 
+    /**
+     * Creates player card element.
+     * Gives dead players special player icon.
+     * @param {import("../player-manager.js").PlayerClass} player Player instance
+     * @returns {HTMLElement} player card element
+     */
     createPlayerCard(player){
         const card = document.createElement("div");
         card.classList.add("player-card");
         card.dataset.name = player.name;
         card._player = player;
 
-        
         const icon = document.createElement("img");
         icon.classList.add("player-icon");
         if(player.checkIfPlayerAlive()){
@@ -97,20 +106,32 @@ export class GameMenu extends UiController{
         return card;
     }
 
+    /**
+     * Calls popup ui to display lynch summary
+     */
     lynchPopup(){
         this.elements.popupText.textContent = this.gameState.handleLynch();
         this.popup();
     }
 
+    /**
+     * Calls popup ui to display night summary
+     * @param {string} message Html or text for night summary  
+     */
     nightPopup(message){
         this.elements.popupText.innerHTML = message;
         this.popup();
     }
 
+    /**
+     * Changes popup visibility
+     * @param {string} displayType Css display type 
+     */
     popup(displayType = "block"){
         this.elements.popupWindow.style.display = displayType;
     }
 
+    /** Closes popup ui and calls rerendering of player cards */
     onPopupClicked(){
         this.popup("none");
         this.displayPlayers();
