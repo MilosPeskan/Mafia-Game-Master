@@ -6,9 +6,10 @@ export class IconManager {
         this.totalIcons = 20; // silueta1.png - silueta20.png
     }
 
-  /**
-   * Generiši sve putanje ikonica
-   */
+    /**
+     * Generate all icon paths
+     * @returns {string[]} Array of icon paths
+     */
     getAllIconPaths() {
         const icons = [];
         for (let i = 1; i <= this.totalIcons; i++) {
@@ -17,9 +18,11 @@ export class IconManager {
         return icons;
     }
 
-  /**
-   * Dobavi nasumične ikonice (bez ponavljanja)
-   */
+    /**
+     * Returns a shuffled subset of icons without repetition
+     * @param {number} count - Number of icons to return
+     * @returns {string[]} Array of shuffled icon paths
+     */
     getShuffledIcons(count) {
         const allIcons = this.getAllIconPaths();
         this.shuffleArray(allIcons);
@@ -27,21 +30,13 @@ export class IconManager {
         return allIcons.slice(0, count);
     }
 
-  /**
-   * Fisher-Yates shuffle
-   */
+    /**
+     * Fisher-Yates shuffle
+     */
   shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
   }
-
-  /**
-   * Dobavi random ikonicu
-   */
-  getRandomIcon() {
-        const num = Math.floor(Math.random() * this.totalIcons) + 1;
-        return `${this.iconBasePath}silueta${num}.png`;
-    }
 }
