@@ -1,4 +1,4 @@
-import { IMAGE_PATH, IMAGES } from "../constants.js";
+import { IMAGE_PATH, IMAGES, MESSAGES } from "../constants.js";
 import { UiController } from "./ui-controller.js";
 
 export class MainMenu extends UiController{
@@ -51,14 +51,20 @@ export class MainMenu extends UiController{
         })
     }
 
+    /** Check if minimum number of players have been added and signal to advance to role selection menu */
     handleNextClick(){
-        if(this.gameState.getNumberOfPlayers() < 4) {
-            alert("Igra mora da ima minimum 4 igrača!");
+        if(!this.gameState.hasMinimumRequiredPlayers()) {
+            alert(MESSAGES.MIN_PLAYERS_REQUIRED);
             return;
         }
         this.onNextClick?.();
     }
 
+    /** 
+     * Makes player list ui visible and hides app description
+     * Adds player name to player list ui 
+     * Checks if max number of players reached and lock input field
+     */
     handleAddPlayer(){
         const name = this.elements.playerNameInput.value.trim();
 
@@ -82,7 +88,11 @@ export class MainMenu extends UiController{
         }
     }
 
-    // funkcija za dodavanje igraca u listu i kreaciju HTML elementa
+    /**
+     * Creates HTML list element for player name with button to remove from list
+     * Handles font scaling based on player name lenght
+     * @param {string} name Sanitized player name 
+     */
     createPlayerListItem(name){
         const li = document.createElement("li");
         li.dataset.playerName = name;
@@ -106,11 +116,19 @@ export class MainMenu extends UiController{
         this.elements.playersList.appendChild(li);
     }
 
+    /**
+     * Gets random player list background image and returns it
+     * @returns {string} Path to random player list background image
+     */
     getRandomImage() {
         const randomIndex = Math.floor(Math.random() * IMAGES.length);
         return IMAGE_PATH + IMAGES[randomIndex];
     }
 
+    /**
+     * Find player with passed name and remove list element with that name
+     * @param {string} name Player name 
+     */
     removePlayerFromList(name){
         const items = this.elements.playersList.querySelectorAll("li");
 
@@ -122,6 +140,12 @@ export class MainMenu extends UiController{
         }
     }
 
+    /**
+     * Removes player object from players list and player from ui list
+     * Enables player input field
+     * If no players exist in list, displays app description
+     * @param {string} name Player name 
+     */
     handleDelete(name){
         this.gameState.removePlayer(name);
         this.removePlayerFromList(name);
@@ -136,10 +160,11 @@ export class MainMenu extends UiController{
 
     }
 
+    /** Resets main menu by clearing all players from list ui and enabling input field */
     reset() {
         this.elements.playersList.innerHTML = "";
-        this.playerNameInput.value = "";
-        this.playerNameInput.disabled = false;
+        this.elements.playerNameInput.value = "";
+        this.elements.playerNameInput.disabled = false;
         this.elements.addButton.disabled = false;
     }
 
