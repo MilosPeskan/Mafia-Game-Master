@@ -48,7 +48,8 @@ export class NightMenu extends UiController {
     }
 
     /**
-     * Hide process night button and begin processing night events
+     * Finalize the night phase and begin processing night events
+     * Hide process button and emit night complete signal
      */
     handleNightComplete(){
         this.elements.processButton.style.display = "none";
@@ -56,7 +57,8 @@ export class NightMenu extends UiController {
     }
 
     /**
-     * Transition to action menu with current players and role
+     * Emit action request signal for current night step
+     * Passes current players and role to action menu
      */
     handleActionClicked(){
         const currentStep = this.gameState.getCurrentNightStep();
@@ -68,14 +70,13 @@ export class NightMenu extends UiController {
 
         const { roleId, players } = currentStep;
 
-        // Obavesti koordinator da otvori action menu
         this.onActionRequested?.(roleId, players);
     }
 
     /**
      * Display role that is waking up and all players with that role (or alignment)
-     * If night is over, show narrator helper to wake up everyone
-     * Call to update action buttons
+     * Handle special role naming
+     * If night is over, display end of night screen
      */
     displayCurrentStep(){
         const currentStep = this.gameState.getCurrentNightStep();
@@ -121,7 +122,7 @@ export class NightMenu extends UiController {
     }
 
     /**
-     * Update night progress
+     * Update ui to display night progress
      */
     updateProgress() {
         const current = this.gameState.nightIndex + 1;
@@ -130,27 +131,30 @@ export class NightMenu extends UiController {
     }
 
     /**
-     * 
+     * Dynamicly update text in action buttons to fit role ability
      * @param {number} roleId Key from ROLE dictionary
      * @param {import("../player-manager.js").PlayerClass[]} players Array of player objects in current night step
-     * @returns 
      */
     updateMenu(roleId, players){
         this.updateProgress();
-        // Proveri da li je igrač živ
         const allDead = this.gameState.isEveryPlayerWithRoleDead(players);
         const allBlocked = this.gameState.isEveryPlayerWithRoleBlocked(players);
+        // disable ability and display amnesiac ability text
         if(this.gameState.hasRemembered(players) && roleId == ROLE_IDS.AMNEZICAR){
             this.updateActionButton("se setio");
             return;
-        } else if(this.gameState.hasParasitised(players) && roleId == ROLE_IDS.PARAZIT){
+        }
+        // disable ability and display parasite ability text
+        else if(this.gameState.hasParasitised(players) && roleId == ROLE_IDS.PARAZIT){
             this.updateActionButton("parazitirao");
             return;
         }
+        // disable ability and display dead text
         else if(allDead) {
             this.updateActionButton("mrtav");
             return;
         }
+        // disable ability and display blocked text
         else if(allBlocked) {
             this.updateActionButton("blokiran");
             return;
@@ -158,6 +162,10 @@ export class NightMenu extends UiController {
         this.elements.actionButton.textContent = getRoleTextForButton(roleId);
     }
 
+    /**
+     * Swap action button with skip button and display reason for skipping
+     * @param {string} text Text to be displayed in action button
+     */
     updateActionButton(text){
         this.elements.actionButton.style.display = "none";
 
@@ -168,61 +176,24 @@ export class NightMenu extends UiController {
         this.elements.skipButton.textContent = `Nastavi (Igrač ${text})`;
     }
 
+    /** Skip current night step and advance to next one */
     handleSkip(){
         this.advanceToNextStep();
     }
 
+    /** Get next players in night queue and display next step */
     advanceToNextStep(){
         this.gameState.advanceNight();
         this.displayCurrentStep();
     }
 
+    /** Display end of night screen and enable transition to game menu */
     displayNightEnd() {
-        // Noć je završena - prikaži rezime
         this.elements.role.textContent = "Noć je završena";
         this.elements.playerName.textContent = "grad se budi";
         this.elements.actionButton.style.display = "none";
         this.elements.skipButton.style.display = "none";
 
-        // Prikaži dugme za procesiranje noći
         this.elements.processButton.style.display = "block";
-    }
-
-    processNight() {        
-        // Pozovi game state da procesirajse sve akcije
-        const winMessage = this.gameState.processNightResolution();
-
-        // Sakrij process dugme
-        this.elements.processButton.style.display = "none";
-
-        // Prikaži rezultate
-        this.showNightResults(winMessage);
-    }
-
-    showNightResults(winMessage) {
-        // Nađi sve igrače koji su ubijeni
-        const killed = this.gameState.players.filter(p => 
-            !p.isAlive && !p.wasDeadLastNight
-        );
-
-        // Označi da su bili mrtvi (za sledeću noć)
-        this.gameState.players.forEach(p => {
-            p.wasDeadLastNight = !p.isAlive;
-        });
-
-        let resultText = "";
-
-        if (killed.length > 0) {
-            resultText = `Ubijeni tokom noći:\n${killed.map(p => p.name).join(", ")}`;
-        } else {
-            resultText = "Niko nije ubijen tokom noći.";
-        }
-
-        if (winMessage) {
-            resultText += `\n\n${winMessage}`;
-        }
-
-        // Prikaži rezultat
-        alert(resultText);
     }
 }
